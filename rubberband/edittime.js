@@ -1,14 +1,14 @@
 ﻿function GetBehaviorSettings()
 {
 	return {
-		"name":			"MyBehavior",			// as appears in 'add behavior' dialog, can be changed as long as "id" stays the same
-		"id":			"MyBehavior",			// this is used to identify this behavior and is saved to the project; never change it
-		"version":		"1.0",					// (float in x.y format) Behavior version - C2 shows compatibility warnings based on this
-		"description":	"<appears at the bottom of the add behavior dialog>",
-		"author":		"<your name/organisation>",
-		"help url":		"<your website or a manual entry on Scirra.com>",
-		"category":		"General",				// Prefer to re-use existing categories, but you can set anything here
-		"flags":		0						// uncomment lines to enable flags...
+		"name":			"RubberBand",
+		"id":			"RubberBand",
+		"version":		"0.1",
+		"description":	"Tie one object to another via a rubber band",
+		"author":		"simulated_tea",
+		"help url":		"N/A",
+		"category":		"Movements",
+		"flags":		0
 					//	| bf_onlyone			// can only be added once to an object, e.g. solid
 	};
 };
@@ -27,6 +27,10 @@
 // AddKeybParam(label, description)										// a button to click and press a key (returns a VK)
 // AddAudioFileParam(label, description)								// a dropdown list with all imported project audio files
 
+AddNumberParam("RelaxedLength", "The distance allowed before any effect is felt in pixel");
+AddNumberParam("Stiffness", "The stength of the force if stretched");
+//AddNumberParam("Mass", "The suceptiblity of this object to the rubber force");
+
 ////////////////////////////////////////
 // Conditions
 
@@ -39,8 +43,8 @@
 //				description,		// appears in event wizard dialog when selected
 //				script_name);		// corresponding runtime function name
 
-// example
-AddCondition(0, cf_none, "Is moving", "My category", "{my} is moving", "Description for my condition!", "IsMoving");
+// Possible: is pulling
+AddCondition(0, 0, "Is streched", "Rubber Band", "{my}'s rubber band is streched", "Fixture object is out of relaxed lengths range", "IsStretched");
 
 ////////////////////////////////////////
 // Actions
@@ -53,8 +57,9 @@ AddCondition(0, cf_none, "Is moving", "My category", "{my} is moving", "Descript
 //			 description,		// appears in event wizard dialog when selected
 //			 script_name);		// corresponding runtime function name
 
-// example
-AddAction(0, af_none, "Stop", "My category", "Stop {my}", "Description for my action!", "Stop");
+// Possible: cut, tie
+AddObjectParam("Fixture", "Object to tie a rubber band to")
+AddAction(0, af_none, "Tie", "Rubber Band", "Tie {my} to <b>{0}</b>", "Tie a new rubber band to the target", "tie");
 
 ////////////////////////////////////////
 // Expressions
@@ -67,8 +72,8 @@ AddAction(0, af_none, "Stop", "My category", "Stop {my}", "Description for my ac
 //				 exp_name,		// the expression name after the dot, e.g. "foo" for "myobject.foo" - also the runtime function name
 //				 description);	// description in expressions panel
 
-// example
-AddExpression(0, ef_return_number, "Leet expression", "My category", "MyExpression", "Return the number 1337.");
+// possible: force(pixel/sec)
+// AddExpression(0, ef_return_number, "Leet expression", "My category", "MyExpression", "Return the number 1337.");
 
 ////////////////////////////////////////
 ACESDone();
@@ -81,8 +86,10 @@ ACESDone();
 // new cr.Property(ept_combo,		name,	"Item 1",		description, "Item 1|Item 2|Item 3")	// a dropdown list (initial_value is string of initially selected item)
 
 var property_list = [
-	new cr.Property(ept_integer, 	"My property",		77,		"An example property.")
-	];
+	new cr.Property(ept_integer, "RelaxedLength", 100,  "The distance allowed before any effect is felt in pixel"),
+	new cr.Property(ept_float, "Stiffness", 1, "The stength of the force if stretched")
+	//new cr.Property(ept_float, "Mass", 1,  "The suceptiblity of this object to the rubber force")
+];
 
 // Called by IDE when a new behavior type is to be created
 function CreateIDEBehaviorType()
