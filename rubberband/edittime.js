@@ -29,6 +29,8 @@
 
 AddNumberParam("RelaxedLength", "The distance allowed before any effect is felt in pixel");
 AddNumberParam("Stiffness", "The stength of the force if stretched");
+AddNumberParam("Gravity", "Optional gravity effect");
+AddNumberParam("Drag", "Optional drag effect");
 //AddNumberParam("Mass", "The suceptiblity of this object to the rubber force");
 
 ////////////////////////////////////////
@@ -87,8 +89,10 @@ ACESDone();
 
 var property_list = [
 	new cr.Property(ept_integer, "RelaxedLength", 100,  "The distance allowed before any effect is felt in pixel"),
-	new cr.Property(ept_float, "Stiffness", 1, "The stength of the force if stretched")
-	//new cr.Property(ept_float, "Mass", 1,  "The suceptiblity of this object to the rubber force")
+	new cr.Property(ept_float, "Stiffness", 1, "The stength of the force if stretched"),
+	//new cr.Property(ept_float, "Mass", 1,  "The suceptiblity of this object to the rubber force"),
+    new cr.Property(ept_float, "Gravity", 10, "Optional gravity effect, in pixel/second"),
+    new cr.Property(ept_float, "Drag", 0.03, "Optional drag effect")
 ];
 
 // Called by IDE when a new behavior type is to be created

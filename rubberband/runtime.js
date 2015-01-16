@@ -48,6 +48,8 @@ cr.behaviors.RubberBand = function(runtime)
 		this.relaxedLength = this.properties[0];
         this.stiffness = this.properties[1];
         //this.mass = this.properties[2];
+        this.gravity = this.properties[2];
+        this.drag = this.properties[3];
 
 		// object is sealed after this call, so make sure any properties you'll ever need are created, e.g.
         this.fixture = null;
@@ -76,6 +78,8 @@ cr.behaviors.RubberBand = function(runtime)
             "fixtureUid": this.fixture ? this.fixture.uid : -1,
             "relaxedLength": this.relaxedLength,
             "stiffness": this.stiffness,
+            "gravity": this.gravity,
+            "drag": this.drag,
             "dx": this.dx,
             "dy": this.dy
 		};
@@ -87,6 +91,8 @@ cr.behaviors.RubberBand = function(runtime)
         this.fixtureUid = o["fixtureUid"];
         this.relaxedLength = o["relaxedLength"];
         this.stiffness = o["stiffness"];
+        this.gravity = o["gravity"];
+        this.drag = o["drag"];
         this.dx = o["dx"];
         this.dy = o["dy"];
 
@@ -112,17 +118,25 @@ cr.behaviors.RubberBand = function(runtime)
 
 	behinstProto.tick = function ()
 	{
-		var dt = this.runtime.getDt(this.inst);
-        var stretch = this.calculateStretch();
+		var accel = {"x": 0, "y": 0},
+            dt = this.runtime.getDt(this.inst),
+            stretch = this.calculateStretch();
         this.isStretched = (stretch > 0);
         if (this.isStretched)
         {
-            this.updateSpeed(stretch, dt);
+            accel = this.updateSpeed(stretch, dt);
+        }
+        if (this.gravity) {
+            this.accountForGravity(dt);
+        }
+        if (this.drag)
+        {
+            this.accountForDrag(dt);
         }
         if (this.dx >= 0.1 || this.dy >= 0.1)
         {
-            this.inst.x += this.dx*dt;
-            this.inst.y += this.dy*dt;
+            this.inst.x += this.dx*dt + 0.5*(accel.x);
+            this.inst.y += this.dy*dt + 0.5*(accel.y + this.gravity);
             this.inst.set_bbox_changed();
         }
 	};
@@ -140,8 +154,22 @@ cr.behaviors.RubberBand = function(runtime)
     {
         var delta = this.getDeltaVector();
         var accel = deltaL*this.stiffness; //*this.mass
-        this.dx += dt*accel*delta.x/Math.abs(delta.x+delta.y);
-        this.dy += dt*accel*delta.y/Math.abs(delta.x+delta.y);
+        var accelX = accel*delta.x/Math.abs(delta.x+delta.y);
+        var accelY = accel*delta.y/Math.abs(delta.x+delta.y);
+        this.dx += dt*accelX;
+        this.dy += dt*accelY;
+        return {"x": accelX, "y": accelY};
+    }
+
+    behinstProto.accountForDrag = function (dt)
+    {
+        this.dx -= (this.drag*this.dx);
+        this.dy -= (this.drag*this.dy);
+    }
+
+    behinstProto.accountForGravity = function (dt)
+    {
+        this.dy += dt*this.gravity;
     }
 
     behinstProto.getDeltaVector = function ()
@@ -170,12 +198,14 @@ cr.behaviors.RubberBand = function(runtime)
 				// "readonly" (optional, default false): set to true to disable editing the property
 				{"name": "fixtureName/UID", "value": this.fixture ? this.fixture.type.name+"/"+this.fixture.uid : "-/-", "readonly": true},
 				{"name": "Stretchedness", "value": this.isStretched, "readonly": true},
-				{"name": "dx", "value": this.dx, "readonly": true},
-				{"name": "dy", "value": this.dy, "readonly": true},
-				{"name": "deltaX", "value": this.getDeltaVector().x, "readonly": true},
-				{"name": "deltaY", "value": this.getDeltaVector().y, "readonly": true},
+				//{"name": "dx", "value": this.dx, "readonly": true},
+				//{"name": "dy", "value": this.dy, "readonly": true},
+				//{"name": "deltaX", "value": this.getDeltaVector().x, "readonly": true},
+				//{"name": "deltaY", "value": this.getDeltaVector().y, "readonly": true},
 				{"name": "Relaxed Length", "value": this.relaxedLength},
-				{"name": "Spring Rate", "value": this.stiffness}
+				{"name": "Spring Rate", "value": this.stiffness},
+				{"name": "Gravity", "value": this.gravity},
+				{"name": "Drag", "value": this.drag}
 			]
 		});
 	};
@@ -186,6 +216,10 @@ cr.behaviors.RubberBand = function(runtime)
 			this.relaxedLength = value;
 		if (name === "Spring Rate")
 			this.stiffness = value;
+		if (name === "Gravity")
+			this.gravity = value;
+		if (name === "Drag")
+			this.drag = value;
 	};
 	/**END-PREVIEWONLY**/
 
