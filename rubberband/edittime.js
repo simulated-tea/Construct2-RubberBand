@@ -3,13 +3,13 @@
 	return {
 		"name":			"RubberBand",
 		"id":			"RubberBand",
-		"version":		"0.1",
+		"version":		"0.5",
 		"description":	"Tie one object to another via a rubber band",
 		"author":		"simulated_tea",
 		"help url":		"N/A",
 		"category":		"Movements",
 		"flags":		0
-					//	| bf_onlyone			// can only be added once to an object, e.g. solid
+						| bf_onlyone			// can only be added once to an object, e.g. solid
 	};
 };
 

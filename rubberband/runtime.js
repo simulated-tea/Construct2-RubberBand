@@ -52,6 +52,11 @@ cr.behaviors.RubberBand = function(runtime)
 
 	behinstProto.onDestroy = function ()
 	{
+        this.fixture = null;
+        this.fixtureUid = -1;
+        this.dx = 0;
+        this.dy = 0;
+        this.isStretched = false;
 	};
 
 	behinstProto.saveToJSON = function ()
