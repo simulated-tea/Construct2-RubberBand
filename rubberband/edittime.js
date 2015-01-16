@@ -20,11 +20,12 @@ AddNumberParam("Drag", "Optional drag effect");
 
 AddCondition(0, 0, "Is streched", "Rubber Band", "{my}'s rubber band is streched", "Fixture object is out of relaxed lengths range", "IsStretched");
 
-// Missing: cut
 AddObjectParam("Fixture", "Object to tie a rubber band to")
-AddAction(0, af_none, "Tie", "Rubber Band", "Tie {my} to <b>{0}</b>", "Tie a new rubber band to the target", "tie");
+AddAction(0, af_none, "Tie", "Connect", "Tie {my} to <b>{0}</b>", "Tie a new rubber band to the target", "tie");
 
-// possible: force
+AddAction(1, af_none, "Cut", "Connect", "Cut {my} free", "Unbind the rubber band", "cut");
+
+// possible expression: force, speed
 
 ACESDone();
 

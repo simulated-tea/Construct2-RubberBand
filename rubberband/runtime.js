@@ -107,14 +107,17 @@ cr.behaviors.RubberBand = function(runtime)
             dt = this.runtime.getDt(this.inst),
             delta = this.getDeltaVector(),
             stretch = this.calculateStretch();
-        this.isStretched = (stretch.displacement > 0);
-        if (this.isStretched)
+        if (this.fixture)
         {
-            var accel = stretch.displacement*this.stiffness;
-            accelX = accel*delta.x*stretch.ratio;
-            accelY = accel*delta.y*stretch.ratio;
-            this.dx += dt*accelX;
-            this.dy += dt*accelY;
+            this.isStretched = (stretch.displacement > 0);
+            if (this.isStretched)
+            {
+                var accel = stretch.displacement*this.stiffness;
+                accelX = accel*delta.x*stretch.ratio;
+                accelY = accel*delta.y*stretch.ratio;
+                this.dx += dt*accelX;
+                this.dy += dt*accelY;
+            }
         }
         if (this.gravity)
         {
@@ -206,6 +209,12 @@ cr.behaviors.RubberBand = function(runtime)
 			
 		this.fixture = otherinst;
 	};
+
+	Acts.prototype.cut = function (obj)
+    {
+        this.fixture = null;
+        this.isStretched = false;
+    }
 
 	behaviorProto.acts = new Acts();
 
