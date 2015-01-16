@@ -41,17 +41,15 @@ cr.behaviors.RubberBand = function(runtime)
 	behinstProto.onCreate = function()
 	{
 		this.relaxedLength = this.properties[0];
-        this.stiffness = this.properties[1];
-        //this.mass = this.properties[2];
-        this.gravity = this.properties[2];
-        this.drag = this.properties[3];
+        this.stiffness = this.properties[1]*0.1; // for nicer default config values
+        this.gravity = this.properties[2]*100;
+        this.drag = this.properties[3]*0.01;
 
         this.fixture = null;
         this.fixtureUid = -1;
         this.dx = 0;
         this.dy = 0;
 		this.isStretched = false;
-        this.safeInner = 0.70710*this.RelaxedLength;
 	};
 
 	behinstProto.onDestroy = function ()
@@ -89,8 +87,7 @@ cr.behaviors.RubberBand = function(runtime)
         this.dx = o["dx"];
         this.dy = o["dy"];
 
-        this.isStretched = (this.calculateStretch() > 0);
-        this.safeInner = 0.70710*this.RelaxedLength;
+        this.isStretched = (this.calculateStretch().displacement > 0);
 	};
 
 	behinstProto.afterLoad = function ()
@@ -111,25 +108,32 @@ cr.behaviors.RubberBand = function(runtime)
 
 	behinstProto.tick = function ()
 	{
-		var accel = {"x": 0, "y": 0},
+		var accelX = 0,
+            accelY = 0,
             dt = this.runtime.getDt(this.inst),
+            delta = this.getDeltaVector(),
             stretch = this.calculateStretch();
-        this.isStretched = (stretch > 0);
+        this.isStretched = (stretch.displacement > 0);
         if (this.isStretched)
         {
-            accel = this.updateSpeed(stretch, dt);
+            var accel = stretch.displacement*this.stiffness; //*this.mass
+            accelX = accel*delta.x*stretch.ratio;
+            accelY = accel*delta.y*stretch.ratio;
+            this.dx += dt*accelX;
+            this.dy += dt*accelY;
         }
-        if (this.gravity) {
-            this.accountForGravity(dt);
+        if (this.gravity)
+        {
+            this.dy += dt*this.gravity;
         }
         if (this.drag)
         {
-            this.accountForDrag(dt);
+            this.dx -= (this.drag*this.dx);
+            this.dy -= (this.drag*this.dy);
         }
-        if (this.dx >= 0.1 || this.dy >= 0.1)
         {
-            this.inst.x += this.dx*dt + 0.5*(accel.x);
-            this.inst.y += this.dy*dt + 0.5*(accel.y + this.gravity);
+            this.inst.x += (this.dx + 0.5*(accelX)*dt)*dt;
+            this.inst.y += (this.dy + 0.5*(accelY + this.gravity)*dt)*dt;
             this.inst.set_bbox_changed();
         }
 	};
@@ -139,30 +143,8 @@ cr.behaviors.RubberBand = function(runtime)
         if (!this.fixture) 
             return 0;
         var distance = cr.distanceTo(this.fixture.x, this.fixture.y, this.inst.x, this.inst.y),
-            deltaL = distance - this.relaxedLength;
-        return Math.max(deltaL, 0);
-    }
-
-    behinstProto.updateSpeed = function (deltaL, dt)
-    {
-        var delta = this.getDeltaVector();
-        var accel = deltaL*this.stiffness; //*this.mass
-        var accelX = accel*delta.x/Math.abs(delta.x+delta.y);
-        var accelY = accel*delta.y/Math.abs(delta.x+delta.y);
-        this.dx += dt*accelX;
-        this.dy += dt*accelY;
-        return {"x": accelX, "y": accelY};
-    }
-
-    behinstProto.accountForDrag = function (dt)
-    {
-        this.dx -= (this.drag*this.dx);
-        this.dy -= (this.drag*this.dy);
-    }
-
-    behinstProto.accountForGravity = function (dt)
-    {
-        this.dy += dt*this.gravity;
+            displacement = Math.max(distance - this.relaxedLength, 0);
+        return {"ratio": displacement/distance, "displacement": displacement};
     }
 
     behinstProto.getDeltaVector = function ()
