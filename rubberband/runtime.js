@@ -4,8 +4,6 @@
 assert2(cr, "cr namespace not created");
 assert2(cr.behaviors, "cr.behaviors not created");
 
-/////////////////////////////////////
-// Behavior class
 cr.behaviors.RubberBand = function(runtime)
 {
 	this.runtime = runtime;
@@ -54,17 +52,10 @@ cr.behaviors.RubberBand = function(runtime)
 
 	behinstProto.onDestroy = function ()
 	{
-		// called when associated object is being destroyed
-		// note runtime may keep the object and behavior alive after this call for recycling;
-		// release, recycle or reset any references here as necessary
 	};
 
-	// called when saving the full state of the game
 	behinstProto.saveToJSON = function ()
 	{
-		// return a Javascript object containing information about your behavior's state
-		// note you MUST use double-quote syntax (e.g. "property": value) to prevent
-		// Closure Compiler renaming and breaking the save format
 		return {
             "fixtureUid": this.fixture ? this.fixture.uid : -1,
             "relaxedLength": this.relaxedLength,
@@ -76,7 +67,6 @@ cr.behaviors.RubberBand = function(runtime)
 		};
 	};
 
-	// called when loading the full state of the game
 	behinstProto.loadFromJSON = function (o)
 	{
         this.fixtureUid = o["fixtureUid"];
@@ -92,7 +82,6 @@ cr.behaviors.RubberBand = function(runtime)
 
 	behinstProto.afterLoad = function ()
 	{
-		// Look up the pinned object UID now getObjectByUID is available
 		if (this.fixtureUid === -1)
         {
 			this.fixture = null;
@@ -116,7 +105,7 @@ cr.behaviors.RubberBand = function(runtime)
         this.isStretched = (stretch.displacement > 0);
         if (this.isStretched)
         {
-            var accel = stretch.displacement*this.stiffness; //*this.mass
+            var accel = stretch.displacement*this.stiffness;
             accelX = accel*delta.x*stretch.ratio;
             accelY = accel*delta.y*stretch.ratio;
             this.dx += dt*accelX;
@@ -141,15 +130,22 @@ cr.behaviors.RubberBand = function(runtime)
     behinstProto.calculateStretch = function ()
     {
         if (!this.fixture) 
+        {
             return 0;
+        }
         var distance = cr.distanceTo(this.fixture.x, this.fixture.y, this.inst.x, this.inst.y),
             displacement = Math.max(distance - this.relaxedLength, 0);
-        return {"ratio": displacement/distance, "displacement": displacement};
+        return
+        {
+            "ratio": displacement/distance,
+            "displacement": displacement
+        };
     }
 
     behinstProto.getDeltaVector = function ()
     {
-        return {
+        return
+        {
             "x": this.fixture.x - this.inst.x,
             "y": this.fixture.y - this.inst.y
         };
@@ -158,25 +154,11 @@ cr.behaviors.RubberBand = function(runtime)
 	/**BEGIN-PREVIEWONLY**/
 	behinstProto.getDebuggerValues = function (propsections)
 	{
-		// Append to propsections any debugger sections you want to appear.
-		// Each section is an object with two members: "title" and "properties".
-		// "properties" is an array of individual debugger properties to display
-		// with their name and value, and some other optional settings.
 		propsections.push({
 			"title": this.type.name,
 			"properties": [
-				// Each property entry can use the following values:
-				// "name" (required): name of the property (must be unique within this section)
-				// "value" (required): a boolean, number or string for the value
-				// "html" (optional, default false): set to true to interpret the name and value
-				//									 as HTML strings rather than simple plain text
-				// "readonly" (optional, default false): set to true to disable editing the property
 				{"name": "fixtureName/UID", "value": this.fixture ? this.fixture.type.name+"/"+this.fixture.uid : "-/-", "readonly": true},
 				{"name": "Stretchedness", "value": this.isStretched, "readonly": true},
-				//{"name": "dx", "value": this.dx, "readonly": true},
-				//{"name": "dy", "value": this.dy, "readonly": true},
-				//{"name": "deltaX", "value": this.getDeltaVector().x, "readonly": true},
-				//{"name": "deltaY", "value": this.getDeltaVector().y, "readonly": true},
 				{"name": "Relaxed Length", "value": this.relaxedLength},
 				{"name": "Spring Rate", "value": this.stiffness},
 				{"name": "Gravity", "value": this.gravity},
@@ -198,8 +180,6 @@ cr.behaviors.RubberBand = function(runtime)
 	};
 	/**END-PREVIEWONLY**/
 
-	//////////////////////////////////////
-	// Conditions
 	function Cnds() {};
 
 	Cnds.prototype.IsStretched = function ()
@@ -209,11 +189,8 @@ cr.behaviors.RubberBand = function(runtime)
 
 	behaviorProto.cnds = new Cnds();
 
-	//////////////////////////////////////
-	// Actions
 	function Acts() {};
 
-	// the example action
 	Acts.prototype.tie = function (obj)
 	{
 		if (!obj)
@@ -227,8 +204,6 @@ cr.behaviors.RubberBand = function(runtime)
 
 	behaviorProto.acts = new Acts();
 
-	//////////////////////////////////////
-	// Expressions
 	function Exps() {};
 
 	// the example expression
