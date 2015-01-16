@@ -15,8 +15,6 @@ cr.behaviors.RubberBand = function(runtime)
 {
 	var behaviorProto = cr.behaviors.RubberBand.prototype;
 
-	/////////////////////////////////////
-	// Behavior type class
 	behaviorProto.Type = function(behavior, objtype)
 	{
 		this.behavior = behavior;
@@ -30,13 +28,11 @@ cr.behaviors.RubberBand = function(runtime)
 	{
 	};
 
-	/////////////////////////////////////
-	// Behavior instance class
 	behaviorProto.Instance = function(type, inst)
 	{
 		this.type = type;
 		this.behavior = type.behavior;
-		this.inst = inst;				// associated object instance to modify
+		this.inst = inst;
 		this.runtime = type.runtime;
 	};
 
@@ -44,19 +40,16 @@ cr.behaviors.RubberBand = function(runtime)
 
 	behinstProto.onCreate = function()
 	{
-		// Load properties
 		this.relaxedLength = this.properties[0];
         this.stiffness = this.properties[1];
         //this.mass = this.properties[2];
         this.gravity = this.properties[2];
         this.drag = this.properties[3];
 
-		// object is sealed after this call, so make sure any properties you'll ever need are created, e.g.
         this.fixture = null;
         this.fixtureUid = -1;
         this.dx = 0;
         this.dy = 0;
-
 		this.isStretched = false;
         this.safeInner = 0.70710*this.RelaxedLength;
 	};
