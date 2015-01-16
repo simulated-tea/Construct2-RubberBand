@@ -151,6 +151,13 @@ cr.behaviors.RubberBand = function(runtime)
 
     behinstProto.getDeltaVector = function ()
     {
+        if (!this.fixture)
+        {
+            return {
+                "x": 0,
+                "y": 0
+            }
+        }
         return {
             "x": this.fixture.x - this.inst.x,
             "y": this.fixture.y - this.inst.y
