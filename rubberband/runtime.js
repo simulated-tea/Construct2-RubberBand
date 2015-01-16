@@ -143,8 +143,7 @@ cr.behaviors.RubberBand = function(runtime)
         }
         var distance = cr.distanceTo(this.fixture.x, this.fixture.y, this.inst.x, this.inst.y),
             displacement = Math.max(distance - this.relaxedLength, 0);
-        return
-        {
+        return {
             "ratio": displacement/distance,
             "displacement": displacement
         };
@@ -152,8 +151,7 @@ cr.behaviors.RubberBand = function(runtime)
 
     behinstProto.getDeltaVector = function ()
     {
-        return
-        {
+        return {
             "x": this.fixture.x - this.inst.x,
             "y": this.fixture.y - this.inst.y
         };
@@ -202,11 +200,14 @@ cr.behaviors.RubberBand = function(runtime)
 	Acts.prototype.tie = function (obj)
 	{
 		if (!obj)
+        {
 			return;
+        }
 		var otherinst = obj.getFirstPicked(this.inst);
 		if (!otherinst)
+        {
 			return;
-			
+        }
 		this.fixture = otherinst;
 	};
 
