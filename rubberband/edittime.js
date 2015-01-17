@@ -9,7 +9,7 @@
 		"help url":		"https://github.com/simulated-tea/Construct2-RubberBand",
 		"category":		"Movements",
 		"flags":		0
-						| bf_onlyone			// can only be added once to an object, e.g. solid
+						| bf_onlyone
 	};
 };
 
@@ -25,7 +25,7 @@ AddAction(0, af_none, "Tie", "Connect", "Tie {my} to <b>{0}</b>", "Tie a new rub
 
 AddAction(1, af_none, "Cut", "Connect", "Cut {my} free", "Unbind the rubber band", "cut");
 
-// possible expression: force, speed
+// possible expression: speed(x & y)
 
 ACESDone();
 
