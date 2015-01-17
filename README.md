@@ -8,6 +8,7 @@ The current implementation should be fully functional.
 
 There do not (yet?) exist any Expressions or Actions other than the bare minimum.
 No performance optimizations have been done so far.
+Also the save-load functionality is entirely untested. (saveToJSON, loadFromJSON)
 
 It is also currently limited to have only one instance of the behavior per object.
 This is due to a 'ripping' effect if the bands get 'overstretched'.
