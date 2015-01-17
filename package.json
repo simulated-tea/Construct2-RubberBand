@@ -10,7 +10,8 @@
   "devDependencies": {
     "grunt": "^0.4.5",
     "grunt-contrib-copy": "^0.7.0",
-    "grunt-contrib-jshint": "^0.10.0"
+    "grunt-contrib-jshint": "^0.10.0",
+    "grunt-zip": "^0.16.2"
   },
   "scripts": {
     "test": "test"
