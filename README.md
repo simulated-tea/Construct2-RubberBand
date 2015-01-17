@@ -4,9 +4,12 @@ This behavior can attach one object to another and exercise a force if these two
 It can have additional gravity and drag configured to allow for some quite different use cases.
 
 # State
-The current implementation should be fully functions
+The current implementation should be fully functional.
 
-It is however currently limited to only have one instance of the behavior per object.
+There do not (yet?) exist any Expressions or Actions other than the bare minimum.
+No performance optimizations have been done so far.
+
+It is also currently limited to have only one instance of the behavior per object.
 This is due to a 'ripping' effect if the bands get 'overstretched'.
 
 # Disclaimer
