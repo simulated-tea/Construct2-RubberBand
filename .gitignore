@@ -2,3 +2,6 @@ bullet/
 pin/
 jshint
 node_modules/
+build/
+RubberBand.c2addon
+npm-debug.log
