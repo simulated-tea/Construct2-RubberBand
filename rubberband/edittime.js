@@ -1,19 +1,19 @@
 ﻿function GetBehaviorSettings()
 {
 	return {
-		"name":			"RubberBand",
+		"name":			"Rubber Band",
 		"id":			"RubberBand",
 		"version":		"0.5",
 		"description":	"Tie one object to another via a rubber band",
 		"author":		"simulated_tea",
-		"help url":		"N/A",
+		"help url":		"https://github.com/simulated-tea/Construct2-RubberBand",
 		"category":		"Movements",
 		"flags":		0
 						| bf_onlyone			// can only be added once to an object, e.g. solid
 	};
 };
 
-AddNumberParam("RelaxedLength", "The distance allowed before any effect is felt in pixel");
+AddNumberParam("Relaxed Length", "The distance allowed before any effect is felt in pixel");
 AddNumberParam("Stiffness", "The stength of the force if stretched");
 AddNumberParam("Gravity", "Optional gravity effect");
 AddNumberParam("Drag", "Optional drag effect");
@@ -30,7 +30,7 @@ AddAction(1, af_none, "Cut", "Connect", "Cut {my} free", "Unbind the rubber band
 ACESDone();
 
 var property_list = [
-	new cr.Property(ept_integer, "RelaxedLength", 100,  "The distance allowed before any effect is felt in pixel"),
+	new cr.Property(ept_integer, "Relaxed Length", 100,  "The distance allowed before any effect is felt in pixel"),
 	new cr.Property(ept_float, "Stiffness", 5, "The stength of the force if stretched"),
     new cr.Property(ept_float, "Gravity", 10, "Optional gravity effect, in pixel/second"),
     new cr.Property(ept_float, "Drag", 1, "Optional drag effect")
