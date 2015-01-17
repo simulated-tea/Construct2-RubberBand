@@ -25,6 +25,8 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-zip');
 
     grunt.registerTask('default', ['deploy']);
+
+    grunt.registerTask('d', ['deploy']);
     grunt.registerTask('deploy', ['copy:deploy']);
 
     grunt.registerTask('clean', function() {
@@ -38,6 +40,7 @@ module.exports = function(grunt) {
         grunt.file.write('build/info.xml', text);
     });
 
+    grunt.registerTask('b', ['build']);
     grunt.registerTask('build', ['buildAddon']);
     grunt.registerTask('buildAddon', ['clean', 'prepareAddon', 'copy:build', 'zip', 'clean']);
 };
