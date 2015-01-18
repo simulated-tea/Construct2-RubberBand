@@ -9,6 +9,10 @@ module.exports = function(grunt) {
             build: {
                 src: 'rubberband/*',
                 dest: 'build/files/'
+            },
+            backup: {
+                src: ['*', '.git/*'],
+                dest: process.env.USERPROFILE+'/SkyDrive/Backup/Construct 2/Rubber Band/',
             }
         },
         zip: {
@@ -43,4 +47,6 @@ module.exports = function(grunt) {
     grunt.registerTask('b', ['build']);
     grunt.registerTask('build', ['buildAddon']);
     grunt.registerTask('buildAddon', ['clean', 'prepareAddon', 'copy:build', 'zip', 'clean']);
+
+    grunt.registerTask('backup', ['copy:backup']);
 };
