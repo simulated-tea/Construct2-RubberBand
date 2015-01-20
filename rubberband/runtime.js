@@ -138,26 +138,25 @@ cr.behaviors.RubberBand = function(runtime)
             return 0;
         }
         var distance = cr.distanceTo(this.fixture.x, this.fixture.y, this.inst.x, this.inst.y),
-            displacement = Math.max(distance - this.relaxedLength, 0);
-        return {
-            "ratio": displacement/distance,
-            "displacement": displacement
-        };
+            displacement = Math.max(distance - this.relaxedLength, 0),
+            result = {};
+        result.ratio = displacement/distance;
+        result.displacement = displacement;
+        return result;
     }
 
     behinstProto.getDeltaVector = function ()
     {
+        var result = {};
         if (!this.fixture)
         {
-            return {
-                "x": 0,
-                "y": 0
-            }
+            result.x = 0;
+            result.y = 0;
+            return result;
         }
-        return {
-            "x": this.fixture.x - this.inst.x,
-            "y": this.fixture.y - this.inst.y
-        };
+        result.x = this.fixture.x - this.inst.x;
+        result.y = this.fixture.y - this.inst.y;
+        return result;
     }
 
 	/**BEGIN-PREVIEWONLY**/
