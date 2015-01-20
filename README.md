@@ -12,6 +12,7 @@ No performance optimizations have been done so far.
 Also the save-load functionality is entirely untested. (saveToJSON, loadFromJSON)
 
 ### Known issues
+* no isTied expression
 * if items are shaked heavily the tied object might be catapulted somewhere into nirvana
 * item starts jumping around under stressed rubber band if other forces are present
 * crazy config values might create crazy behavior - won't fix. I like some of those. :)
