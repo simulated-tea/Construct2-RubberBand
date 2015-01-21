@@ -4,14 +4,14 @@
 assert2(cr, "cr namespace not created");
 assert2(cr.behaviors, "cr.behaviors not created");
 
-cr.behaviors.RubberBand = function(runtime)
+cr.behaviors.MultiRubberBand = function(runtime)
 {
 	this.runtime = runtime;
 };
 
 (function ()
 {
-	var behaviorProto = cr.behaviors.RubberBand.prototype;
+	var behaviorProto = cr.behaviors.MultiRubberBand.prototype;
 
 	behaviorProto.Type = function(behavior, objtype)
 	{
@@ -43,8 +43,8 @@ cr.behaviors.RubberBand = function(runtime)
         this.gravity = this.properties[2]*100;
         this.drag = this.properties[3]*0.01;
 
-        this.fixture = null;
-        this.fixtureUid = -1;
+        this.fixture = [];
+        this.fixtureUids = [];
         this.dx = 0;
         this.dy = 0;
 		this.isStretched = false;
@@ -52,13 +52,13 @@ cr.behaviors.RubberBand = function(runtime)
 
 	behinstProto.onDestroy = function ()
 	{
-        this.fixture = null;
+        this.fixture = [];
 	};
 
 	behinstProto.saveToJSON = function ()
 	{
 		return {
-            "fixtureUid": this.fixture ? this.fixture.uid : -1,
+            "fixtureUidString": getAllUids(),
             "relaxedLength": this.relaxedLength,
             "stiffness": this.stiffness,
             "gravity": this.gravity,
@@ -68,32 +68,52 @@ cr.behaviors.RubberBand = function(runtime)
 		};
 	};
 
+    behinstProto.getAllUids = function ()
+    {
+        var uidString = '';
+        forAll(this, this.fixture, function(i)
+        {
+            uidString += ','+fixture.uid;
+        });
+        if (uidString.length) // cut leading ,
+        {
+            uidString = uidString.slice(1);
+        }
+        return uidString;
+    }
+
 	behinstProto.loadFromJSON = function (o)
 	{
-        this.fixtureUid = o["fixtureUid"];
+        this.fixtureUids = o["fixtureUidString"];
         this.relaxedLength = o["relaxedLength"];
         this.stiffness = o["stiffness"];
         this.gravity = o["gravity"];
         this.drag = o["drag"];
         this.dx = o["dx"];
         this.dy = o["dy"];
-
-        this.isStretched = (this.calculateStretch().displacement > 0);
 	};
+
+    behinstProto.parseUidString = function (string) {
+        if (string.length === 0)
+        {
+            return [];
+        }
+        return string.split(',');
+    }
 
 	behinstProto.afterLoad = function ()
 	{
-		if (this.fixtureUid === -1)
-        {
-			this.fixture = null;
-        }
-		else
+        this.fixture = [];
+		if (this.fixtureUids !== [])
 		{
-			this.fixture = this.runtime.getObjectByUID(this.fixtureUid);
-			assert2(this.fixture, "Failed to find fixture object by UID");
+            forAll(this, this.fixtureUids, function(i)
+            {
+                this.fixture.push(this.runtime.getObjectByUID(this.fixtureUids[i]));
+            });
 		}
-		
-		this.fixtureUid = -1;
+        assert2(this.fixture.length === this.fixtureUids.length, "Failed to find all fixture objects by UID");
+
+		this.fixtureUids = [];
 	};
 
 	behinstProto.tick = function ()
@@ -101,24 +121,24 @@ cr.behaviors.RubberBand = function(runtime)
 		var accelX = 0,
             accelY = 0,
             dt = this.runtime.getDt(this.inst),
-            delta = this.getDeltaVector(),
-            stretch = this.calculateStretch();
-        if (this.fixture)
+            deltas = this.getDeltaVectors(),
+            stretches = this.calculateStretches();
+        if (this.fixture.length)
         {
-            this.isStretched = (stretch.displacement > 0);
-            if (this.isStretched)
+            for (var i = 0; i < this.fixture.length; ++i)
+            forAll(this, this.fixture, function(i)
             {
-                var accel = stretch.displacement*this.stiffness;
-                accelX = accel*delta.x*stretch.ratio;
-                accelY = accel*delta.y*stretch.ratio;
-                this.dx += dt*accelX;
-                this.dy += dt*accelY;
-            }
+                var accel = stretches[i].displacement*this.stiffness;
+                accelX += accel*deltas[i].x*stretches[i].ratio;
+                accelY += accel*deltas[i].y*stretches[i].ratio;
+            });
         }
         if (this.gravity)
         {
-            this.dy += dt*this.gravity;
+            accelY += this.gravity;
         }
+        this.dx += dt*accelX;
+        this.dy += dt*accelY;
         if (this.drag)
         {
             this.dx -= (this.drag*this.dx);
@@ -126,37 +146,37 @@ cr.behaviors.RubberBand = function(runtime)
         }
         {
             this.inst.x += (this.dx + 0.5*(accelX)*dt)*dt;
-            this.inst.y += (this.dy + 0.5*(accelY + this.gravity)*dt)*dt;
+            this.inst.y += (this.dy + 0.5*(accelY)*dt)*dt;
             this.inst.set_bbox_changed();
         }
 	};
 
-    behinstProto.calculateStretch = function ()
+    behinstProto.calculateStretches = function ()
     {
-        if (!this.fixture) 
+        var stretchList = [];
+        forAll(this, this.fixture, function(i)
         {
-            return 0;
-        }
-        var distance = cr.distanceTo(this.fixture.x, this.fixture.y, this.inst.x, this.inst.y),
-            displacement = Math.max(distance - this.relaxedLength, 0),
-            result = {};
-        result.ratio = displacement/distance;
-        result.displacement = displacement;
-        return result;
+            var distance = cr.distanceTo(this.fixture[i].x, this.fixture[i].y, this.inst.x, this.inst.y),
+                displacement = Math.max(distance - this.relaxedLength, 0),
+                result = {};
+            result.ratio = displacement/distance;
+            result.displacement = displacement;
+            stretchList.push(result);
+        });
+        return stretchList;
     }
 
-    behinstProto.getDeltaVector = function ()
+    behinstProto.getDeltaVectors = function ()
     {
-        var result = {};
-        if (!this.fixture)
+        var deltaList = [];
+        forAll(this, this.fixture, function(i)
         {
-            result.x = 0;
-            result.y = 0;
-            return result;
-        }
-        result.x = this.fixture.x - this.inst.x;
-        result.y = this.fixture.y - this.inst.y;
-        return result;
+            var delta = {};
+            delta.x = this.fixture[i].x - this.inst.x;
+            delta.y = this.fixture[i].y - this.inst.y;
+            deltaList.push(delta);
+        });
+        return deltaList;
     }
 
 	/**BEGIN-PREVIEWONLY**/
@@ -165,8 +185,7 @@ cr.behaviors.RubberBand = function(runtime)
 		propsections.push({
 			"title": this.type.name,
 			"properties": [
-				{"name": "fixtureName/UID", "value": this.fixture ? this.fixture.type.name+"/"+this.fixture.uid : "-/-", "readonly": true},
-				{"name": "Stretchedness", "value": this.isStretched, "readonly": true},
+				{"name": "fixtureSize", "value": this.fixture.length, "readonly": true},
 				{"name": "Relaxed Length", "value": this.relaxedLength},
 				{"name": "Spring Rate", "value": this.stiffness},
 				{"name": "Gravity", "value": this.gravity},
@@ -190,11 +209,6 @@ cr.behaviors.RubberBand = function(runtime)
 
 	function Cnds() {};
 
-	Cnds.prototype.IsStretched = function ()
-	{
-		return this.isStretched;
-	};
-
 	behaviorProto.cnds = new Cnds();
 
 	function Acts() {};
@@ -210,13 +224,26 @@ cr.behaviors.RubberBand = function(runtime)
         {
 			return;
         }
-		this.fixture = otherinst;
+		this.fixture.push(otherinst);
 	};
 
-	Acts.prototype.cut = function (obj)
+	Acts.prototype.cutFrom = function (obj)
     {
-        this.fixture = null;
-        this.isStretched = false;
+		if (!obj)
+        {
+			return;
+        }
+		var otherinst = obj.getFirstPicked(this.inst);
+		if (!otherinst)
+        {
+			return;
+        }
+        cr.ArrayFindRemove(this.fixture, otherinst);
+    }
+
+	Acts.prototype.cutAll = function (obj)
+    {
+        this.fixture = [];
     }
 
 	behaviorProto.acts = new Acts();

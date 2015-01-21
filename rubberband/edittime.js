@@ -1,10 +1,10 @@
 ﻿function GetBehaviorSettings()
 {
 	return {
-		"name":			"Rubber Band",
-		"id":			"RubberBand",
-		"version":		"0.5",
-		"description":	"Tie one object to another via a rubber band",
+		"name":			"Multi Rubber Band",
+		"id":			"MultiRubberBand",
+		"version":		"0.6",
+		"description":	"Tie one object to multiple others via rubber bands",
 		"author":		"simulated_tea",
 		"help url":		"https://github.com/simulated-tea/Construct2-RubberBand",
 		"category":		"Movements",
@@ -13,25 +13,26 @@
 	};
 };
 
-AddNumberParam("Relaxed Length", "The distance allowed before any effect is felt in pixel");
-AddNumberParam("Stiffness", "The stength of the force if stretched");
+AddNumberParam("Relaxed Length", "The distance allowed before any effect is felt in pixel. Currently the same for all targets");
+AddNumberParam("Stiffness", "The stength of the force if stretched. Currently the same for all targets");
 AddNumberParam("Gravity", "Optional gravity effect");
 AddNumberParam("Drag", "Optional drag effect");
 
-AddCondition(0, 0, "Is streched", "Rubber Band", "{my}'s rubber band is streched", "Fixture object is out of relaxed lengths range", "IsStretched");
 
 AddObjectParam("Fixture", "Object to tie a rubber band to")
 AddAction(0, af_none, "Tie", "Connect", "Tie {my} to <b>{0}</b>", "Tie a new rubber band to the target", "tie");
 
-AddAction(1, af_none, "Cut", "Connect", "Cut {my} free", "Unbind the rubber band", "cut");
+AddObjectParam("Fixture", "Object to untie a rubber band from")
+AddAction(1, af_none, "Cut", "Connect", "Cut {my} free from <b>{0}</b>", "Unbind the rubber band from a specific target", "cutFrom");
+AddAction(2, af_none, "Cut All", "Connect", "Cut {my} free from all ties", "Unbind the rubber band from all ties", "cutAll");
 
-// possible expression: speed(x & y)
+// possible expression: isTied, speed(x & y)
 
 ACESDone();
 
 var property_list = [
-	new cr.Property(ept_integer, "Relaxed Length", 100,  "The distance allowed before any effect is felt in pixel"),
-	new cr.Property(ept_float, "Stiffness", 5, "The stength of the force if stretched"),
+	new cr.Property(ept_integer, "Relaxed Length", 100,  "The distance allowed before any effect is felt in pixel. Currently the same for all targets"),
+	new cr.Property(ept_float, "Stiffness", 5, "The stength of the force if stretched. Currently the same for all targets"),
     new cr.Property(ept_float, "Gravity", 10, "Optional gravity effect, in pixel/second"),
     new cr.Property(ept_float, "Drag", 1, "Optional drag effect")
 ];
