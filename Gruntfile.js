@@ -10,6 +10,10 @@ module.exports = function(grunt) {
                 src: 'rubberband/*',
                 dest: 'build/files/'
             },
+            'zip-c2addon': {
+                src: 'RubberBand.zip',
+                dest: 'RubberBand.c2addon'
+            },
             backup: {
                 src: ['*', '.git/*'],
                 dest: process.env.USERPROFILE+'/SkyDrive/Backup/Construct 2/Rubber Band/',
@@ -19,7 +23,7 @@ module.exports = function(grunt) {
             'using-cwd': {
                 cwd: 'build/',
                 src: ['build/info.xml', 'build/files/**/*'],
-                dest: 'RubberBand.c2addon'
+                dest: 'RubberBand.zip'
             }
         }
     });
@@ -46,7 +50,7 @@ module.exports = function(grunt) {
 
     grunt.registerTask('b', ['build']);
     grunt.registerTask('build', ['buildAddon']);
-    grunt.registerTask('buildAddon', ['clean', 'prepareAddon', 'copy:build', 'zip', 'clean']);
+    grunt.registerTask('buildAddon', ['clean', 'prepareAddon', 'copy:build', 'zip', 'clean', 'copy:zip-c2addon']);
 
     grunt.registerTask('backup', ['copy:backup']);
 };

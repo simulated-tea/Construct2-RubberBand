@@ -5,4 +5,5 @@ jshint
 node_modules/
 build/
 RubberBand.c2addon
+RubberBand.zip
 npm-debug.log
