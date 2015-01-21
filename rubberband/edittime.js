@@ -9,6 +9,7 @@
 		"help url":		"https://github.com/simulated-tea/Construct2-RubberBand",
 		"category":		"Movements",
 		"flags":		0
+						| bf_onlyone
 	};
 };
 
