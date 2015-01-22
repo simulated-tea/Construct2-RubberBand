@@ -12,7 +12,6 @@ No performance optimizations have been done so far.
 Also the save-load functionality is entirely untested. (saveToJSON, loadFromJSON)
 
 ### Known issues
-* no isTied expression
 * no collision checks
 * no enabled switch
 * if items are shaked heavily the tied object might be catapulted somewhere into nirvana
