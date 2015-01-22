@@ -13,11 +13,6 @@
 	};
 };
 
-AddNumberParam("Relaxed Length", "The distance allowed before any effect is felt in pixel");
-AddNumberParam("Stiffness", "The stength of the force if stretched");
-AddNumberParam("Gravity", "Optional gravity effect");
-AddNumberParam("Drag", "Optional drag effect");
-
 AddCondition(0, 0, "Is streched", "Rubber Band", "{my}'s rubber band is streched", "Fixture object is out of relaxed lengths range", "IsStretched");
 
 AddObjectParam("Fixture", "Object to tie a rubber band to")
