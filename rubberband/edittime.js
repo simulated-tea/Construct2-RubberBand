@@ -13,6 +13,8 @@
 	};
 };
 
+AddCondition(0, 0, "Is tied", "Rubber Band", "{my}'s rubber band is tied", "The object is attached to another object via its rubberband", "IsTied");
+
 AddObjectParam("Fixture", "Object to tie a rubber band to")
 AddAction(0, af_none, "Tie", "Connect", "Tie {my} to <b>{0}</b>", "Tie a new rubber band to the target", "tie");
 

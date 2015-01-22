@@ -186,6 +186,7 @@ cr.behaviors.MultiRubberBand = function(runtime)
 			"title": this.type.name,
 			"properties": [
 				{"name": "fixtureSize", "value": this.fixture.length, "readonly": true},
+				{"name": "Tiedness", "value": !! this.fixture, "readonly": true},
 				{"name": "Relaxed Length", "value": this.relaxedLength},
 				{"name": "Spring Rate", "value": this.stiffness},
 				{"name": "Gravity", "value": this.gravity},
@@ -208,6 +209,11 @@ cr.behaviors.MultiRubberBand = function(runtime)
 	/**END-PREVIEWONLY**/
 
 	function Cnds() {};
+
+	Cnds.prototype.IsTied = function ()
+	{
+		return !! this.fixture;
+	};
 
 	behaviorProto.cnds = new Cnds();
 
