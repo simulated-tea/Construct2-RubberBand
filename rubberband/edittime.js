@@ -1,16 +1,16 @@
 ﻿function GetBehaviorSettings()
 {
-	return {
-		"name":			"Rubber Band",
-		"id":			"RubberBand",
-		"version":		"0.5",
-		"description":	"Tie one object to another via a rubber band",
-		"author":		"simulated_tea",
-		"help url":		"https://github.com/simulated-tea/Construct2-RubberBand",
-		"category":		"Movements",
-		"flags":		0
-						| bf_onlyone
-	};
+    return {
+        "name":        "Rubber Band",
+        "id":          "RubberBand",
+        "version":     "0.5",
+        "description": "Tie one object to another via a rubber band",
+        "author":      "simulated_tea",
+        "help url":    "https://github.com/simulated-tea/Construct2-RubberBand",
+        "category":    "Movements",
+        "flags":       0
+                       | bf_onlyone
+    };
 };
 
 AddCondition(0, 0, "Is tied", "Rubber Band", "{my}'s rubber band is tied", "The object is attached to another object via its rubberband", "IsTied");
@@ -31,8 +31,8 @@ AddAction(2, 0, "Set enabled", "", "Set {my} <b>{0}</b>", "Set whether this beha
 ACESDone();
 
 var property_list = [
-	new cr.Property(ept_integer, "Relaxed Length", 100,  "The distance allowed before any effect is felt in pixel"),
-	new cr.Property(ept_float, "Stiffness", 5, "The stength of the force if stretched"),
+    new cr.Property(ept_integer, "Relaxed Length", 100,  "The distance allowed before any effect is felt in pixel"),
+    new cr.Property(ept_float, "Stiffness", 5, "The stength of the force if stretched"),
     new cr.Property(ept_float, "Gravity", 10, "Optional gravity effect, in pixel/second"),
     new cr.Property(ept_float, "Drag", 1, "Optional drag effect")
     new cr.Property(ept_combo, "Initial State", "Enabled", "Whether to initially have the behavior enabled or disabled", "Disabled|Enabled")
@@ -40,30 +40,30 @@ var property_list = [
 
 function CreateIDEBehaviorType()
 {
-	return new IDEBehaviorType();
+    return new IDEBehaviorType();
 }
 
 function IDEBehaviorType()
 {
-	assert2(this instanceof arguments.callee, "Constructor called as a function");
+    assert2(this instanceof arguments.callee, "Constructor called as a function");
 }
 
 IDEBehaviorType.prototype.CreateInstance = function(instance)
 {
-	return new IDEInstance(instance, this);
+    return new IDEInstance(instance, this);
 }
 
 function IDEInstance(instance, type)
 {
-	assert2(this instanceof arguments.callee, "Constructor called as a function");
+    assert2(this instanceof arguments.callee, "Constructor called as a function");
 
-	this.instance = instance;
-	this.type = type;
+    this.instance = instance;
+    this.type = type;
 
-	this.properties = {};
+    this.properties = {};
 
-	for (var i = 0; i < property_list.length; i++)
-		this.properties[property_list[i].name] = property_list[i].initial_value;
+    for (var i = 0; i < property_list.length; i++)
+        this.properties[property_list[i].name] = property_list[i].initial_value;
 }
 
 IDEInstance.prototype.OnCreate = function()

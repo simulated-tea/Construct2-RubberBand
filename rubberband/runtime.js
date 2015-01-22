@@ -6,39 +6,39 @@ assert2(cr.behaviors, "cr.behaviors not created");
 
 cr.behaviors.RubberBand = function(runtime)
 {
-	this.runtime = runtime;
+    this.runtime = runtime;
 };
 
 (function ()
 {
-	var behaviorProto = cr.behaviors.RubberBand.prototype;
+    var behaviorProto = cr.behaviors.RubberBand.prototype;
 
-	behaviorProto.Type = function(behavior, objtype)
-	{
-		this.behavior = behavior;
-		this.objtype = objtype;
-		this.runtime = behavior.runtime;
-	};
+    behaviorProto.Type = function(behavior, objtype)
+    {
+        this.behavior = behavior;
+        this.objtype = objtype;
+        this.runtime = behavior.runtime;
+    };
 
-	var behtypeProto = behaviorProto.Type.prototype;
+    var behtypeProto = behaviorProto.Type.prototype;
 
-	behtypeProto.onCreate = function()
-	{
-	};
+    behtypeProto.onCreate = function()
+    {
+    };
 
-	behaviorProto.Instance = function(type, inst)
-	{
-		this.type = type;
-		this.behavior = type.behavior;
-		this.inst = inst;
-		this.runtime = type.runtime;
-	};
+    behaviorProto.Instance = function(type, inst)
+    {
+        this.type = type;
+        this.behavior = type.behavior;
+        this.inst = inst;
+        this.runtime = type.runtime;
+    };
 
-	var behinstProto = behaviorProto.Instance.prototype;
+    var behinstProto = behaviorProto.Instance.prototype;
 
-	behinstProto.onCreate = function()
-	{
-		this.relaxedLength = this.properties[0];
+    behinstProto.onCreate = function()
+    {
+        this.relaxedLength = this.properties[0];
         this.stiffness = this.properties[1]*0.1; // for nicer default config values
         this.gravity = this.properties[2]*100;
         this.drag = this.properties[3]*0.01;
@@ -48,17 +48,17 @@ cr.behaviors.RubberBand = function(runtime)
         this.fixtureUid = -1;
         this.dx = 0;
         this.dy = 0;
-		this.isStretched = false;
-	};
+        this.isStretched = false;
+    };
 
-	behinstProto.onDestroy = function ()
-	{
+    behinstProto.onDestroy = function ()
+    {
         this.fixture = null;
-	};
+    };
 
-	behinstProto.saveToJSON = function ()
-	{
-		return {
+    behinstProto.saveToJSON = function ()
+    {
+        return {
             "fixtureUid": this.fixture ? this.fixture.uid : -1,
             "relaxedLength": this.relaxedLength,
             "stiffness": this.stiffness,
@@ -67,11 +67,11 @@ cr.behaviors.RubberBand = function(runtime)
             "drag": this.drag,
             "dx": this.dx,
             "dy": this.dy
-		};
-	};
+        };
+    };
 
-	behinstProto.loadFromJSON = function (o)
-	{
+    behinstProto.loadFromJSON = function (o)
+    {
         this.fixtureUid = o["fixtureUid"];
         this.relaxedLength = o["relaxedLength"];
         this.stiffness = o["stiffness"];
@@ -82,30 +82,30 @@ cr.behaviors.RubberBand = function(runtime)
         this.dy = o["dy"];
 
         this.isStretched = (this.calculateStretch().displacement > 0);
-	};
+    };
 
-	behinstProto.afterLoad = function ()
-	{
-		if (this.fixtureUid === -1)
+    behinstProto.afterLoad = function ()
+    {
+        if (this.fixtureUid === -1)
         {
-			this.fixture = null;
+            this.fixture = null;
         }
-		else
-		{
-			this.fixture = this.runtime.getObjectByUID(this.fixtureUid);
-			assert2(this.fixture, "Failed to find fixture object by UID");
-		}
-		
-		this.fixtureUid = -1;
-	};
+        else
+        {
+            this.fixture = this.runtime.getObjectByUID(this.fixtureUid);
+            assert2(this.fixture, "Failed to find fixture object by UID");
+        }
+        
+        this.fixtureUid = -1;
+    };
 
-	behinstProto.tick = function ()
-	{
+    behinstProto.tick = function ()
+    {
         if (!this.enabled)
         {
             return;
         }
-	var accelX = 0,
+        var accelX = 0,
             accelY = 0,
             dt = this.runtime.getDt(this.inst),
             delta = this.getDeltaVector(),
@@ -136,7 +136,7 @@ cr.behaviors.RubberBand = function(runtime)
             this.inst.y += (this.dy + 0.5*(accelY + this.gravity)*dt)*dt;
             this.inst.set_bbox_changed();
         }
-	};
+    };
 
     behinstProto.calculateStretch = function ()
     {
@@ -166,83 +166,83 @@ cr.behaviors.RubberBand = function(runtime)
         return result;
     }
 
-	/**BEGIN-PREVIEWONLY**/
-	behinstProto.getDebuggerValues = function (propsections)
-	{
-		propsections.push({
-			"title": this.type.name,
-			"properties": [
-				{"name": "fixtureName/UID", "value": this.fixture ? this.fixture.type.name+"/"+this.fixture.uid : "-/-", "readonly": true},
-				{"name": "Tiedness", "value": !! this.fixture, "readonly": true},
-				{"name": "Stretchedness", "value": this.isStretched, "readonly": true},
-				{"name": "Relaxed Length", "value": this.relaxedLength},
-				{"name": "Spring Rate", "value": this.stiffness},
-				{"name": "Gravity", "value": this.gravity},
-				{"name": "Drag", "value": this.drag},
+    /**BEGIN-PREVIEWONLY**/
+    behinstProto.getDebuggerValues = function (propsections)
+    {
+        propsections.push({
+            "title": this.type.name,
+            "properties": [
+                {"name": "fixtureName/UID", "value": this.fixture ? this.fixture.type.name+"/"+this.fixture.uid : "-/-", "readonly": true},
+                {"name": "Tiedness", "value": !! this.fixture, "readonly": true},
+                {"name": "Stretchedness", "value": this.isStretched, "readonly": true},
+                {"name": "Relaxed Length", "value": this.relaxedLength},
+                {"name": "Spring Rate", "value": this.stiffness},
+                {"name": "Gravity", "value": this.gravity},
+                {"name": "Drag", "value": this.drag},
                 {"name": "Enabled", "value": this.enabled}
-			]
-		});
-	};
+            ]
+        });
+    };
 
-	behinstProto.onDebugValueEdited = function (header, name, value)
-	{
-		if (name === "Relaxed Length")
-			this.relaxedLength = value;
-		if (name === "Spring Rate")
-			this.stiffness = value;
-		if (name === "Gravity")
-			this.gravity = value;
-		if (name === "Drag")
-			this.drag = value;
+    behinstProto.onDebugValueEdited = function (header, name, value)
+    {
+        if (name === "Relaxed Length")
+            this.relaxedLength = value;
+        if (name === "Spring Rate")
+            this.stiffness = value;
+        if (name === "Gravity")
+            this.gravity = value;
+        if (name === "Drag")
+            this.drag = value;
         if (name === "Enabled")
             this.enabled = value;
-	};
-	/**END-PREVIEWONLY**/
+    };
+    /**END-PREVIEWONLY**/
 
-	function Cnds() {};
+    function Cnds() {};
 
-	Cnds.prototype.IsStretched = function () { return this.isStretched }
-	Cnds.prototype.IsTied = function () { return !! this.fixture }
+    Cnds.prototype.IsStretched = function () { return this.isStretched }
+    Cnds.prototype.IsTied = function () { return !! this.fixture }
     Cnds.prototype.IsEnabled = function () { return this.enabled }
 
-	behaviorProto.cnds = new Cnds();
+    behaviorProto.cnds = new Cnds();
 
-	function Acts() {};
+    function Acts() {};
 
-	Acts.prototype.tie = function (obj)
-	{
-		if (!obj)
+    Acts.prototype.tie = function (obj)
+    {
+        if (!obj)
         {
-			return;
+            return;
         }
-		var otherinst = obj.getFirstPicked(this.inst);
-		if (!otherinst)
+        var otherinst = obj.getFirstPicked(this.inst);
+        if (!otherinst)
         {
-			return;
+            return;
         }
-		this.fixture = otherinst;
-	};
+        this.fixture = otherinst;
+    };
 
-	Acts.prototype.cut = function (obj)
+    Acts.prototype.cut = function (obj)
     {
         this.fixture = null;
         this.isStretched = false;
     }
 
-	Acts.prototype.SetEnabled = function (en)
-	{
-		this.enabled = (en === 1);
+    Acts.prototype.SetEnabled = function (en)
+    {
+        this.enabled = (en === 1);
         if (!this.enabled)
         {
             this.dx = 0;
             this.dy = 0;
         }
-	};
+    };
 
-	behaviorProto.acts = new Acts();
+    behaviorProto.acts = new Acts();
 
-	function Exps() {};
+    function Exps() {};
 
-	behaviorProto.exps = new Exps();
+    behaviorProto.exps = new Exps();
 
 }());
