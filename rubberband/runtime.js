@@ -42,6 +42,7 @@ cr.behaviors.RubberBand = function(runtime)
         this.stiffness = this.properties[1]*0.1; // for nicer default config values
         this.gravity = this.properties[2]*100;
         this.drag = this.properties[3]*0.01;
+        this.enabled = this.properties[4]; // 0=disabled, 1=enabled
 
         this.fixture = null;
         this.fixtureUid = -1;
@@ -62,6 +63,7 @@ cr.behaviors.RubberBand = function(runtime)
             "relaxedLength": this.relaxedLength,
             "stiffness": this.stiffness,
             "gravity": this.gravity,
+            "enabled": this.enabled,
             "drag": this.drag,
             "dx": this.dx,
             "dy": this.dy
@@ -74,6 +76,7 @@ cr.behaviors.RubberBand = function(runtime)
         this.relaxedLength = o["relaxedLength"];
         this.stiffness = o["stiffness"];
         this.gravity = o["gravity"];
+        this.enabled = o["enabled"];
         this.drag = o["drag"];
         this.dx = o["dx"];
         this.dy = o["dy"];
@@ -98,7 +101,11 @@ cr.behaviors.RubberBand = function(runtime)
 
 	behinstProto.tick = function ()
 	{
-		var accelX = 0,
+        if (!this.enabled)
+        {
+            return;
+        }
+	var accelX = 0,
             accelY = 0,
             dt = this.runtime.getDt(this.inst),
             delta = this.getDeltaVector(),
@@ -171,7 +178,8 @@ cr.behaviors.RubberBand = function(runtime)
 				{"name": "Relaxed Length", "value": this.relaxedLength},
 				{"name": "Spring Rate", "value": this.stiffness},
 				{"name": "Gravity", "value": this.gravity},
-				{"name": "Drag", "value": this.drag}
+				{"name": "Drag", "value": this.drag},
+                {"name": "Enabled", "value": this.enabled}
 			]
 		});
 	};
@@ -186,20 +194,16 @@ cr.behaviors.RubberBand = function(runtime)
 			this.gravity = value;
 		if (name === "Drag")
 			this.drag = value;
+        if (name === "Enabled")
+            this.enabled = value;
 	};
 	/**END-PREVIEWONLY**/
 
 	function Cnds() {};
 
-	Cnds.prototype.IsStretched = function ()
-	{
-		return this.isStretched;
-	};
-
-	Cnds.prototype.IsTied = function ()
-	{
-		return !! this.fixture;
-	};
+	Cnds.prototype.IsStretched = function () { return this.isStretched }
+	Cnds.prototype.IsTied = function () { return !! this.fixture }
+    Cnds.prototype.IsEnabled = function () { return this.enabled }
 
 	behaviorProto.cnds = new Cnds();
 
@@ -224,6 +228,16 @@ cr.behaviors.RubberBand = function(runtime)
         this.fixture = null;
         this.isStretched = false;
     }
+
+	Acts.prototype.SetEnabled = function (en)
+	{
+		this.enabled = (en === 1);
+        if (!this.enabled)
+        {
+            this.dx = 0;
+            this.dy = 0;
+        }
+	};
 
 	behaviorProto.acts = new Acts();
 

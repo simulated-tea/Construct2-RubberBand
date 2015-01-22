@@ -15,11 +15,16 @@
 
 AddCondition(0, 0, "Is tied", "Rubber Band", "{my}'s rubber band is tied", "The object is attached to another object via its rubberband", "IsTied");
 AddCondition(1, 0, "Is streched", "Rubber Band", "{my}'s rubber band is streched", "Fixture object is out of relaxed lengths range", "IsStretched");
+AddCondition(2, 0, "Is enabled", "", "Is {my} enabled", "Test if the behavior is currently enabled.", "IsEnabled");
 
 AddObjectParam("Fixture", "Object to tie a rubber band to")
 AddAction(0, af_none, "Tie", "Connect", "Tie {my} to <b>{0}</b>", "Tie a new rubber band to the target", "tie");
-
 AddAction(1, af_none, "Cut", "Connect", "Cut {my} free", "Unbind the rubber band", "cut");
+
+AddComboParamOption("Disabled");
+AddComboParamOption("Enabled");
+AddComboParam("State", "Set whether to enable or disable the behavior.");
+AddAction(2, 0, "Set enabled", "", "Set {my} <b>{0}</b>", "Set whether this behavior is enabled.", "SetEnabled");
 
 // possible expression: speed(x & y)
 
@@ -30,6 +35,7 @@ var property_list = [
 	new cr.Property(ept_float, "Stiffness", 5, "The stength of the force if stretched"),
     new cr.Property(ept_float, "Gravity", 10, "Optional gravity effect, in pixel/second"),
     new cr.Property(ept_float, "Drag", 1, "Optional drag effect")
+    new cr.Property(ept_combo, "Initial State", "Enabled", "Whether to initially have the behavior enabled or disabled", "Disabled|Enabled")
 ];
 
 function CreateIDEBehaviorType()
