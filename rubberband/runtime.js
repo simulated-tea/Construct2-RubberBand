@@ -166,6 +166,7 @@ cr.behaviors.RubberBand = function(runtime)
 			"title": this.type.name,
 			"properties": [
 				{"name": "fixtureName/UID", "value": this.fixture ? this.fixture.type.name+"/"+this.fixture.uid : "-/-", "readonly": true},
+				{"name": "Tiedness", "value": !! this.fixture, "readonly": true},
 				{"name": "Stretchedness", "value": this.isStretched, "readonly": true},
 				{"name": "Relaxed Length", "value": this.relaxedLength},
 				{"name": "Spring Rate", "value": this.stiffness},
@@ -193,6 +194,11 @@ cr.behaviors.RubberBand = function(runtime)
 	Cnds.prototype.IsStretched = function ()
 	{
 		return this.isStretched;
+	};
+
+	Cnds.prototype.IsTied = function ()
+	{
+		return !! this.fixture;
 	};
 
 	behaviorProto.cnds = new Cnds();
