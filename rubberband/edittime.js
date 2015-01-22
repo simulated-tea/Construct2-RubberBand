@@ -13,12 +13,6 @@
 	};
 };
 
-AddNumberParam("Relaxed Length", "The distance allowed before any effect is felt in pixel. Currently the same for all targets");
-AddNumberParam("Stiffness", "The stength of the force if stretched. Currently the same for all targets");
-AddNumberParam("Gravity", "Optional gravity effect");
-AddNumberParam("Drag", "Optional drag effect");
-
-
 AddObjectParam("Fixture", "Object to tie a rubber band to")
 AddAction(0, af_none, "Tie", "Connect", "Tie {my} to <b>{0}</b>", "Tie a new rubber band to the target", "tie");
 
