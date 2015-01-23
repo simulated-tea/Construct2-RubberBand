@@ -3,7 +3,7 @@
     return {
         "name":        "Rubber Band",
         "id":          "RubberBand",
-        "version":     "0.5",
+        "version":     "0.7",
         "description": "Tie one object to another via a rubber band",
         "author":      "simulated_tea",
         "help url":    "https://github.com/simulated-tea/Construct2-RubberBand",
@@ -12,8 +12,8 @@
     };
 };
 
-AddCondition(0, 0, "Is tied", "Rubber Band", "{my}'s rubber band is tied", "The object is attached to another object via its rubberband", "IsTied");
-AddCondition(1, 0, "Is streched", "Rubber Band", "{my}'s rubber band is streched", "Fixture object is out of relaxed lengths range", "IsStretched");
+AddCondition(0, 0, "Is tied", "", "{my}'s rubber band is tied", "The object is attached to another object via its rubberband", "IsTied");
+AddCondition(1, 0, "Is streched", "", "{my}'s rubber band is streched", "Fixture object is out of relaxed lengths range", "IsStretched");
 AddCondition(2, 0, "Is enabled", "", "Is {my} enabled", "Test if the behavior is currently enabled.", "IsEnabled");
 
 AddObjectParam("Fixture", "Object to tie a rubber band to")
