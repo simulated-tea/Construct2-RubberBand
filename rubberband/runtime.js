@@ -105,20 +105,22 @@ cr.behaviors.RubberBand = function(runtime)
 
     behinstProto.tick = function ()
     {
-        var beeingNudged = this.lastX !== this.inst.x || this.lastY !== this.inst.y;
-        if (!this.enabled)
+        this.pickupExternalImpulse();
+        if (this.enabled)
         {
-            return;
+            this.applyBandMovement();
         }
+        this.lastX = this.inst.x;
+        this.lastY = this.inst.y;
+    }
+
+    behinstProto.applyBandMovement = function ()
+    {
         var accelX = 0,
             accelY = 0,
             dt = this.runtime.getDt(this.inst),
             delta = this.getDeltaVector(),
             stretch = this.calculateStretch();
-        if (beeingNudged)
-        {
-            this.accountForNudge(dt);
-        }
         if (this.fixture)
         {
             this.isStretched = (stretch.displacement > 0);
@@ -149,17 +151,21 @@ cr.behaviors.RubberBand = function(runtime)
         this.lastY = this.inst.y;
     };
 
-    behinstProto.accountForNudge = function (dt)
+    behinstProto.pickupExternalImpulse = function ()
     {
-        var deltaX = this.inst.x - this.lastX,
-            deltaY = this.inst.y - this.lastY;
-        if (Math.abs(deltaX) > 0.001)
+        if (this.lastX !== this.inst.x || this.lastY !== this.inst.y)
         {
-            this.dx = (this.dx + deltaX/dt)/2;
-        }
-        if (Math.abs(deltaY) > 0.001)
-        {
-            this.dy = (this.dy + deltaY/dt)/2;
+            var dt = this.runtime.getDt(this.inst),
+                deltaX = this.inst.x - this.lastX,
+                deltaY = this.inst.y - this.lastY;
+            if (Math.abs(deltaX) > 0.001)
+            {
+                this.dx = (this.dx + deltaX/dt)/2;
+            }
+            if (Math.abs(deltaY) > 0.001)
+            {
+                this.dy = (this.dy + deltaY/dt)/2;
+            }
         }
     }
 
@@ -259,12 +265,7 @@ cr.behaviors.RubberBand = function(runtime)
     Acts.prototype.SetEnabled = function (en)
     {
         this.enabled = (en === 1);
-        if (this.enabled)
-        {
-            this.lastX = this.inst.x;
-            this.lastY = this.inst.y;
-        }
-        else
+        if (!this.enabled)
         {
             this.dx = 0;
             this.dy = 0;
