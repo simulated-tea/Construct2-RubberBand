@@ -49,6 +49,9 @@ cr.behaviors.RubberBand = function(runtime)
         this.dx = 0;
         this.dy = 0;
         this.isStretched = false;
+        this.blockCountdown = 0;
+        this.lastX = this.inst.x;
+        this.lastY = this.inst.y;
     };
 
     behinstProto.onDestroy = function ()
@@ -82,6 +85,9 @@ cr.behaviors.RubberBand = function(runtime)
         this.dy = o["dy"];
 
         this.isStretched = (this.calculateStretch().displacement > 0);
+        this.blockCountdown = 0;
+        this.lastX = this.inst.x;
+        this.lastY = this.inst.y;
     };
 
     behinstProto.afterLoad = function ()
@@ -101,13 +107,25 @@ cr.behaviors.RubberBand = function(runtime)
 
     behinstProto.tick = function ()
     {
-        if (!this.enabled)
-        {
-            return;
+        var dt = this.runtime.getDt(this.inst);
+        this.blockCountdown = Math.max(this.blockCountdown-dt, 0);
+        if (this.inst.x !== this.lastX || this.inst.y !== this.lastY) {
+            this.blockCountdown = 0.035 + 0.05*Math.random();
+            this.dx = 0;
+            this.dy = 0;
         }
+        if (this.enabled || !this.blockCountdown)
+        {
+            this.movementTick(dt);
+        }
+        this.lastX = this.inst.x;
+        this.lastY = this.inst.y;
+    }
+
+    behinstProto.movementTick = function (dt)
+    {
         var accelX = 0,
             accelY = 0,
-            dt = this.runtime.getDt(this.inst),
             delta = this.getDeltaVector(),
             stretch = this.calculateStretch();
         if (this.fixture)
@@ -175,6 +193,7 @@ cr.behaviors.RubberBand = function(runtime)
                 {"name": "fixtureName/UID", "value": this.fixture ? this.fixture.type.name+"/"+this.fixture.uid : "-/-", "readonly": true},
                 {"name": "Tiedness", "value": !! this.fixture, "readonly": true},
                 {"name": "Stretchedness", "value": this.isStretched, "readonly": true},
+                {"name": "Blocked", "value": !! this.blockCountdown, "readonly": true},
                 {"name": "Relaxed Length", "value": this.relaxedLength},
                 {"name": "Spring Rate", "value": this.stiffness},
                 {"name": "Gravity", "value": this.gravity},
