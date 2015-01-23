@@ -9,7 +9,6 @@
         "help url":    "https://github.com/simulated-tea/Construct2-RubberBand",
         "category":    "Movements",
         "flags":       0
-                       | bf_onlyone
     };
 };
 
@@ -34,7 +33,7 @@ var property_list = [
     new cr.Property(ept_integer, "Relaxed Length", 100,  "The distance allowed before any effect is felt in pixel"),
     new cr.Property(ept_float, "Stiffness", 5, "The stength of the force if stretched"),
     new cr.Property(ept_float, "Gravity", 10, "Optional gravity effect, in pixel/second"),
-    new cr.Property(ept_float, "Drag", 1, "Optional drag effect")
+    new cr.Property(ept_float, "Drag", 1, "Optional drag effect"),
     new cr.Property(ept_combo, "Initial State", "Enabled", "Whether to initially have the behavior enabled or disabled", "Disabled|Enabled")
 ];
 

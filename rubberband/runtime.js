@@ -32,6 +32,7 @@ cr.behaviors.RubberBand = function(runtime)
         this.behavior = type.behavior;
         this.inst = inst;
         this.runtime = type.runtime;
+        this.speedometer = new behaviorProto.Speedometer();
     };
 
     var behinstProto = behaviorProto.Instance.prototype;
@@ -48,6 +49,7 @@ cr.behaviors.RubberBand = function(runtime)
         this.fixtureUid = -1;
         this.dx = 0;
         this.dy = 0;
+        this.speedometer.startRecording(this.inst);
         this.isStretched = false;
     };
 
@@ -81,6 +83,7 @@ cr.behaviors.RubberBand = function(runtime)
         this.dx = o["dx"];
         this.dy = o["dy"];
 
+        this.speedometer.startRecording(this.inst);
         this.isStretched = (this.calculateStretch().displacement > 0);
     };
 
@@ -95,7 +98,6 @@ cr.behaviors.RubberBand = function(runtime)
             this.fixture = this.runtime.getObjectByUID(this.fixtureUid);
             assert2(this.fixture, "Failed to find fixture object by UID");
         }
-        
         this.fixtureUid = -1;
     };
 
@@ -105,21 +107,28 @@ cr.behaviors.RubberBand = function(runtime)
         {
             return;
         }
-        var accelX = 0,
-            accelY = 0,
-            dt = this.runtime.getDt(this.inst),
+        var dt = Math.max(this.runtime.getDt(this.inst), 0.000001),
+            accelerationX = 0,
+            accelerationY = 0,
             delta = this.getDeltaVector(),
             stretch = this.calculateStretch();
+        this.speedometer.tick(dt);
+        if (this.speedometer.readyToRead) // Shield against possible external movements
+        {
+            var realSpeed = this.speedometer.getSpeed(this.inst);
+            this.dx = realSpeed.x;
+            this.dy = realSpeed.y;
+        }
         if (this.fixture)
         {
             this.isStretched = (stretch.displacement > 0);
             if (this.isStretched)
             {
-                var accel = stretch.displacement*this.stiffness;
-                accelX = accel*delta.x*stretch.ratio;
-                accelY = accel*delta.y*stretch.ratio;
-                this.dx += dt*accelX;
-                this.dy += dt*accelY;
+                var absolutAcceleration = stretch.displacement*this.stiffness;
+                accelerationX = absolutAcceleration*delta.x*stretch.ratio;
+                accelerationY = absolutAcceleration*delta.y*stretch.ratio;
+                this.dx += dt*accelerationX;
+                this.dy += dt*accelerationY;
             }
         }
         if (this.gravity)
@@ -132,15 +141,16 @@ cr.behaviors.RubberBand = function(runtime)
             this.dy -= (this.drag*this.dy);
         }
         {
-            this.inst.x += (this.dx + 0.5*(accelX)*dt)*dt;
-            this.inst.y += (this.dy + 0.5*(accelY + this.gravity)*dt)*dt;
+            this.inst.x += (this.dx + 0.5*(accelerationX)*dt)*dt;
+            this.inst.y += (this.dy + 0.5*(accelerationY + this.gravity)*dt)*dt;
+            // collision checks missing here (-> 8directions beh)
             this.inst.set_bbox_changed();
         }
     };
 
     behinstProto.calculateStretch = function ()
     {
-        if (!this.fixture) 
+        if (!this.fixture)
         {
             return 0;
         }
@@ -232,11 +242,6 @@ cr.behaviors.RubberBand = function(runtime)
     Acts.prototype.SetEnabled = function (en)
     {
         this.enabled = (en === 1);
-        if (!this.enabled)
-        {
-            this.dx = 0;
-            this.dy = 0;
-        }
     };
 
     behaviorProto.acts = new Acts();
@@ -245,4 +250,54 @@ cr.behaviors.RubberBand = function(runtime)
 
     behaviorProto.exps = new Exps();
 
+    ///////////////////////////
+    // Custom speedometer
+    behaviorProto.Speedometer = function ()
+    {
+        this.x = 0;
+        this.y = 0;
+        this.Sdt = 0;
+        this.readyToRead = false;
+    }
+    var SpeedoProto = behaviorProto.Speedometer.prototype;
+
+    SpeedoProto.startRecording = function (obj)
+    {
+        this.x = obj.x;
+        this.y = obj.y;
+        this.Sdt = 0;
+        this.readyToRead = false;
+    }
+
+    SpeedoProto.tick = function (dt)
+    {
+        this.Sdt += dt;
+        if (this.Sdt > 0.05)
+        {
+            this.readyToRead = true;
+        }
+    }
+
+    SpeedoProto.getSpeed = function (obj)
+    {
+        var deltaX = obj.x - this.x,
+            deltaY = obj.y - this.y,
+            velocityX = 0,
+            velocityY = 0;
+
+        if (deltaX > 0.0001)
+        {
+           velocityX = deltaX/this.Sdt;
+        }
+        if (deltaY > 0.0001)
+        {
+           velocityY = deltaY/this.Sdt;
+        }
+
+        this.startRecording(obj);
+        return {
+            x: velocityX,
+            y: velocityY
+        }
+    }
 }());
