@@ -9,7 +9,6 @@
         "help url":    "https://github.com/simulated-tea/Construct2-RubberBand",
         "category":    "Movements",
         "flags":       0
-                       | bf_onlyone
     };
 };
 
@@ -18,8 +17,8 @@ AddCondition(1, 0, "Is streched", "Rubber Band", "{my}'s rubber band is streched
 AddCondition(2, 0, "Is enabled", "", "Is {my} enabled", "Test if the behavior is currently enabled.", "IsEnabled");
 
 AddObjectParam("Fixture", "Object to tie a rubber band to")
-AddAction(0, af_none, "Tie", "Connect", "Tie {my} to <b>{0}</b>", "Tie a new rubber band to the target", "tie");
-AddAction(1, af_none, "Cut", "Connect", "Cut {my} free", "Unbind the rubber band", "cut");
+AddAction(0, af_none, "Tie", "", "Tie {my} to <b>{0}</b>", "Tie a new rubber band to the target", "tie");
+AddAction(1, af_none, "Cut", "", "Cut {my} free", "Unbind the rubber band", "cut");
 
 AddComboParamOption("Disabled");
 AddComboParamOption("Enabled");

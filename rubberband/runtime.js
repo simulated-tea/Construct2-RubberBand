@@ -49,6 +49,8 @@ cr.behaviors.RubberBand = function(runtime)
         this.dx = 0;
         this.dy = 0;
         this.isStretched = false;
+        this.lastX = this.inst.x;
+        this.lastY = this.inst.y;
     };
 
     behinstProto.onDestroy = function ()
@@ -95,12 +97,15 @@ cr.behaviors.RubberBand = function(runtime)
             this.fixture = this.runtime.getObjectByUID(this.fixtureUid);
             assert2(this.fixture, "Failed to find fixture object by UID");
         }
-        
+
         this.fixtureUid = -1;
+        this.lastX = this.inst.x;
+        this.lastY = this.inst.y;
     };
 
     behinstProto.tick = function ()
     {
+        var beeingNudged = this.lastX !== this.inst.x || this.lastY !== this.inst.y;
         if (!this.enabled)
         {
             return;
@@ -110,6 +115,10 @@ cr.behaviors.RubberBand = function(runtime)
             dt = this.runtime.getDt(this.inst),
             delta = this.getDeltaVector(),
             stretch = this.calculateStretch();
+        if (beeingNudged)
+        {
+            this.accountForNudge(dt);
+        }
         if (this.fixture)
         {
             this.isStretched = (stretch.displacement > 0);
@@ -136,11 +145,27 @@ cr.behaviors.RubberBand = function(runtime)
             this.inst.y += (this.dy + 0.5*(accelY + this.gravity)*dt)*dt;
             this.inst.set_bbox_changed();
         }
+        this.lastX = this.inst.x;
+        this.lastY = this.inst.y;
     };
+
+    behinstProto.accountForNudge = function (dt)
+    {
+        var deltaX = this.inst.x - this.lastX,
+            deltaY = this.inst.y - this.lastY;
+        if (Math.abs(deltaX) > 0.001)
+        {
+            this.dx = (this.dx + deltaX/dt)/2;
+        }
+        if (Math.abs(deltaY) > 0.001)
+        {
+            this.dy = (this.dy + deltaY/dt)/2;
+        }
+    }
 
     behinstProto.calculateStretch = function ()
     {
-        if (!this.fixture) 
+        if (!this.fixture)
         {
             return 0;
         }
@@ -175,11 +200,13 @@ cr.behaviors.RubberBand = function(runtime)
                 {"name": "fixtureName/UID", "value": this.fixture ? this.fixture.type.name+"/"+this.fixture.uid : "-/-", "readonly": true},
                 {"name": "Tiedness", "value": !! this.fixture, "readonly": true},
                 {"name": "Stretchedness", "value": this.isStretched, "readonly": true},
+                {"name": "Velocity.x", "value": this.dx, "readonly": true},
+                {"name": "Velocity.y", "value": this.dy, "readonly": true},
                 {"name": "Relaxed Length", "value": this.relaxedLength},
                 {"name": "Spring Rate", "value": this.stiffness},
                 {"name": "Gravity", "value": this.gravity},
                 {"name": "Drag", "value": this.drag},
-                {"name": "Enabled", "value": this.enabled}
+                {"name": "Enabled", "value": !! this.enabled}
             ]
         });
     };
@@ -232,7 +259,12 @@ cr.behaviors.RubberBand = function(runtime)
     Acts.prototype.SetEnabled = function (en)
     {
         this.enabled = (en === 1);
-        if (!this.enabled)
+        if (this.enabled)
+        {
+            this.lastX = this.inst.x;
+            this.lastY = this.inst.y;
+        }
+        else
         {
             this.dx = 0;
             this.dy = 0;
