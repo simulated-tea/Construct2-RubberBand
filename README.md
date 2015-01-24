@@ -13,6 +13,7 @@ Also the save-load functionality is entirely untested. (saveToJSON, loadFromJSON
 ### Known issues
 * collision checks not yet implemented
 * many actions are still missing: cannot change config at runtime
+* when leaving the browser tab and coming back, complex objects jump around like wild
 * if complex items are shaked heavily the tied objects might be catapulted into nirvana -- anyone an expert on chaotic behavior?
 * crazy config values might create crazy behavior - won't fix. I like some of those. :)
 
