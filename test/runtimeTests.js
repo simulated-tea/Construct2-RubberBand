@@ -32,26 +32,12 @@ describe('RubberBand - runtime', function(){
     describe('tick', function() {
         var tests = [
             // plain rubber - plain acceleration, x quadratic in t, v linear in t
-            {dt: 0.008, fixx: 20, fixy: 5, dx: 0, dy: 0, externShiftX: 0, externShiftY: 0,
-                expectedX: 0.0052, expectedY: 0.0013, newdx: 0.4373, newdy: 0.1093},
             {dt: 0.016, fixx: 20, fixy: 5, dx: 0, dy: 0, externShiftX: 0, externShiftY: 0,
                 expectedX: 0.0209, expectedY: 0.0052, newdx: 0.8746, newdy: 0.2186},
-            {dt: 0.032, fixx: 20, fixy: 5, dx: 0, dy: 0, externShiftX: 0, externShiftY: 0,
-                expectedX: 0.0839, expectedY: 0.0209, newdx: 1.7492, newdy: 0.4372},
 
             // picking up external momentum
-            {dt: 0.008, fixx: 0, fixy: 0, dx: 0, dy: 0, externShiftX: -0.08, externShiftY: -0.08, relaxedLength: 100,
-                expectedX: -0.04, expectedY: -0.04, newdx: -5, newdy: -5},
             {dt: 0.016, fixx: 0, fixy: 0, dx: 0, dy: 0, externShiftX: -0.16, externShiftY: -0.16, relaxedLength: 100,
                 expectedX: -0.08, expectedY: -0.08, newdx: -5, newdy: -5},
-            {dt: 0.032, fixx: 0, fixy: 0, dx: 0, dy: 0, externShiftX: -0.32, externShiftY: -0.32, relaxedLength: 100,
-                expectedX: -0.16, expectedY: -0.16, newdx: -5, newdy: -5},
-
-            // very short time periods after tabbing or debug-pauses
-            // -> ignore these since they tend to be not consistent and produce 'jumping' (very small dts with 'normal' shifts)
-            {dt: 0.005, fixx: 0, fixy: 0, dx: 0, dy: 0, externShiftX: -0.01, externShiftY: -0.01, relaxedLength: 100,
-                expectedX: 0, expectedY: 0, newdx: 0, newdy: 0},
-
         ].forEach(function (params) {
             var bbUpdated = false,
                 objinst = {iam: 'inst', x: 0, y: 0, type: { name: 'hostObject2' },
