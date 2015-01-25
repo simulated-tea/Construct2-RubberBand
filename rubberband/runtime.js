@@ -51,6 +51,8 @@ cr.behaviors.RubberBand = function(runtime)
         this.isStretched = false;
         this.lastX = this.inst.x;
         this.lastY = this.inst.y;
+        this.medianDt = 0.016; // 60 FPS
+        this.lastDts = [0.016, 0.016, 0.016, 0.16, 0.16];
     };
 
     behinstProto.onDestroy = function ()
@@ -70,7 +72,9 @@ cr.behaviors.RubberBand = function(runtime)
             "dx": this.dx,
             "dy": this.dy,
             "lastX": this.lastX,
-            "lastY": this.lastY
+            "lastY": this.lastY,
+            "medianDt": this.medianDt,
+            "lastDts": this.lastDts
         };
     };
 
@@ -86,6 +90,8 @@ cr.behaviors.RubberBand = function(runtime)
         this.dy = o["dy"];
         this.lastX = o["lastX"];
         this.lastY = o["lastY"];
+        this.medianDt = o["medianDt"];
+        this.lastDts = o["lastDts"];
 
         this.isStretched = (this.calculateStretch().displacement > 0);
     };
@@ -107,6 +113,7 @@ cr.behaviors.RubberBand = function(runtime)
 
     behinstProto.tick = function ()
     {
+        this.getLast5MedianDt();
         this.pickupExternalImpulse();
         if (this.enabled)
         {
@@ -131,13 +138,13 @@ cr.behaviors.RubberBand = function(runtime)
                 var accel = stretch.displacement*this.stiffness;
                 accelX = accel*delta.x*stretch.ratio;
                 accelY = accel*delta.y*stretch.ratio;
-                this.dx += dt*accelX;
-                this.dy += dt*accelY;
+                this.dx += this.medianDt*accelX;
+                this.dy += this.medianDt*accelY;
             }
         }
         if (this.gravity)
         {
-            this.dy += dt*this.gravity;
+            this.dy += this.medianDt*this.gravity;
         }
         if (this.drag)
         {
@@ -145,22 +152,29 @@ cr.behaviors.RubberBand = function(runtime)
             this.dy -= (this.drag*this.dy);
         }
         {
-            this.inst.x += (this.dx + 0.5*(accelX)*dt)*dt;
-            this.inst.y += (this.dy + 0.5*(accelY + this.gravity)*dt)*dt;
+            this.inst.x += (this.dx + 0.5*(accelX)*this.medianDt)*this.medianDt;
+            this.inst.y += (this.dy + 0.5*(accelY + this.gravity)*this.medianDt)*this.medianDt;
             this.inst.set_bbox_changed();
         }
     };
+
+    behinstProto.getLast5MedianDt = function ()
+    {
+        var dt = this.runtime.getDt(this.inst);
+        this.lastDts.pop();
+        this.lastDts.unshift(dt);
+        var sample = this.lastDts.slice().sort(function(a,b) {return a-b});
+        this.medianDt = sample[2];
+    }
 
     behinstProto.pickupExternalImpulse = function ()
     {
         if (this.lastX !== this.inst.x || this.lastY !== this.inst.y)
         {
-            var dt = this.runtime.getDt(this.inst),
-                deltaX = this.inst.x - this.lastX,
+            var deltaX = this.inst.x - this.lastX,
                 deltaY = this.inst.y - this.lastY;
-            if (dt <= 0.005) { return } // avoid jumps after pausing/when tabbing
-            this.dx = (this.dx + deltaX/dt)/2;
-            this.dy = (this.dy + deltaY/dt)/2;
+            this.dx = (this.dx + deltaX/this.medianDt)/2;
+            this.dy = (this.dy + deltaY/this.medianDt)/2;
         }
     }
 
