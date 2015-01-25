@@ -38,7 +38,7 @@ cr.behaviors.RubberBand = function(runtime)
 
     behinstProto.onCreate = function()
     {
-        this.relaxedLength = this.properties[0];
+        this.relaxedLength = Math.max(this.properties[0], 0);
         this.stiffness = this.properties[1]*0.1; // for nicer default config values
         this.gravity = this.properties[2]*100;
         this.drag = this.properties[3]*0.01;
@@ -269,9 +269,9 @@ cr.behaviors.RubberBand = function(runtime)
     {
         this.fixture = null;
         this.isStretched = false;
-    }
+    };
 
-    Acts.prototype.SetEnabled = function (en)
+    Acts.prototype.setEnabled = function (en)
     {
         this.enabled = (en === 1);
         if (!this.enabled)
@@ -279,6 +279,16 @@ cr.behaviors.RubberBand = function(runtime)
             this.dx = 0;
             this.dy = 0;
         }
+    };
+
+    Acts.prototype.modifyLength = function (delta)
+    {
+        this.relaxedLength = Math.max(this.relaxedLength + delta, 0);
+    };
+
+    Acts.prototype.setLength = function (length)
+    {
+        this.relaxedLength = Math.max(length, 0);
     };
 
     behaviorProto.acts = new Acts();

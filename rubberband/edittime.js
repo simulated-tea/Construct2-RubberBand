@@ -16,14 +16,19 @@ AddCondition(0, 0, "Is tied", "", "{my}'s rubber band is tied", "The object is a
 AddCondition(1, 0, "Is streched", "", "{my}'s rubber band is streched", "Fixture object is out of relaxed lengths range", "IsStretched");
 AddCondition(2, 0, "Is enabled", "", "Is {my} enabled", "Test if the behavior is currently enabled.", "IsEnabled");
 
-AddObjectParam("Fixture", "Object to tie a rubber band to")
+AddObjectParam("Fixture", "Object to tie a rubber band to");
 AddAction(0, af_none, "Tie", "", "Tie {my} to <b>{0}</b>", "Tie a new rubber band to the target", "tie");
 AddAction(1, af_none, "Cut", "", "Cut {my} free", "Unbind the rubber band", "cut");
 
 AddComboParamOption("Disabled");
 AddComboParamOption("Enabled");
 AddComboParam("State", "Set whether to enable or disable the behavior.");
-AddAction(2, 0, "Set enabled", "", "Set {my} <b>{0}</b>", "Set whether this behavior is enabled.", "SetEnabled");
+AddAction(2, af_none, "Set enabled", "", "Set {my} <b>{0}</b>", "Set whether this behavior is enabled.", "setEnabled");
+
+AddNumberParam("Band length change", "The number of pixel to make the band longer or (if negative) shorter");
+AddAction(3, af_none, "Modify Length", "Configuration", "Modify band length by <b>{0}</b>", "Modify the length of the band. Length will not go below 0.", "modifyLength");
+AddNumberParam("New band length", "The length in pixel to set the band to (>=0)", "100");
+AddAction(4, af_none, "Set Length", "Configuration", "Set band length to <b>{0}</b>", "Set the length of the band to a fixed value (>0)", "setLength");
 
 // possible expression: speed(x & y)
 
