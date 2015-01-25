@@ -14,7 +14,7 @@ Also the save-load functionality is entirely untested. (saveToJSON, loadFromJSON
 * collision checks not yet implemented
 * many actions are still missing: cannot change config at runtime
 * if complex chains are shaken they might spin around like crazy and not come back to rest.
-  Try increasing the drag or stiffness to avoid this.
+  Try increasing the drag to avoid this.
 * crazy config values might create crazy behavior - won't fix. I like some of those. :)
 
 
