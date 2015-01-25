@@ -152,8 +152,8 @@ cr.behaviors.RubberBand = function(runtime)
             this.dy -= (this.drag*this.dy);
         }
         {
-            this.inst.x += (this.dx + 0.5*(accelX)*this.medianDt)*this.medianDt;
-            this.inst.y += (this.dy + 0.5*(accelY + this.gravity)*this.medianDt)*this.medianDt;
+            this.inst.x += cr.clamp((this.dx + 0.5*(accelX)*this.medianDt)*this.medianDt, -1000, 1000);
+            this.inst.y += cr.clamp((this.dy + 0.5*(accelY + this.gravity)*this.medianDt)*this.medianDt, -1000, 1000);
             this.inst.set_bbox_changed();
         }
     };
