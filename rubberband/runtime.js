@@ -169,10 +169,13 @@ cr.behaviors.RubberBand = function(runtime)
 
     behinstProto.pickupExternalImpulse = function ()
     {
-        var deltaX = this.inst.x - this.lastX,
-            deltaY = this.inst.y - this.lastY;
-        this.dx = (this.dx + deltaX/this.medianDt)/2;
-        this.dy = (this.dy + deltaY/this.medianDt)/2;
+        if (this.lastX !== this.inst.x || this.lastY !== this.inst.y)
+        {
+            var deltaX = this.inst.x - this.lastX,
+                deltaY = this.inst.y - this.lastY;
+            this.dx = (this.dx + deltaX/this.medianDt)/2;
+            this.dy = (this.dy + deltaY/this.medianDt)/2;
+        }
     }
 
     behinstProto.calculateStretch = function ()
