@@ -169,7 +169,7 @@ cr.behaviors.RubberBand = function(runtime)
 
     behinstProto.pickupExternalImpulse = function ()
     {
-        if (this.lastX !== this.inst.x || this.lastY !== this.inst.y)
+        if (this.lastX !== this.inst.x || this.lastY !== this.inst.y) // there are there other sources of movement
         {
             var deltaX = this.inst.x - this.lastX,
                 deltaY = this.inst.y - this.lastY;
@@ -213,7 +213,6 @@ cr.behaviors.RubberBand = function(runtime)
             "title": this.type.name,
             "properties": [
                 {"name": "fixtureName/UID", "value": this.fixture ? this.fixture.type.name+"/"+this.fixture.uid : "-/-", "readonly": true},
-                {"name": "Tiedness", "value": !! this.fixture, "readonly": true},
                 {"name": "Stretchedness", "value": this.isStretched, "readonly": true},
                 {"name": "Velocity.x", "value": this.dx, "readonly": true},
                 {"name": "Velocity.y", "value": this.dy, "readonly": true},
@@ -265,7 +264,7 @@ cr.behaviors.RubberBand = function(runtime)
         this.fixture = otherinst;
     };
 
-    Acts.prototype.cut = function (obj)
+    Acts.prototype.cut = function ()
     {
         this.fixture = null;
         this.isStretched = false;
