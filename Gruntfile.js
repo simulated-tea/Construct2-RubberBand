@@ -25,17 +25,27 @@ module.exports = function(grunt) {
                 src: ['build/info.xml', 'build/files/**/*'],
                 dest: 'RubberBand.zip'
             }
+        },
+        mochaTest: {
+          test: {
+            options: {},
+            src: 'test/*.js'
+          }
         }
     });
 
+    grunt.loadNpmTasks('grunt-mocha-test');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-zip');
 
-    grunt.registerTask('default', ['deploy']);
+    grunt.registerTask('default', ['test']);
+
+    grunt.registerTask('t', ['test']);
+    grunt.registerTask('test', ['mochaTest']);
 
     grunt.registerTask('d', ['deploy']);
-    grunt.registerTask('deploy', ['copy:deploy']);
+    grunt.registerTask('deploy', ['test', 'copy:deploy']);
 
     grunt.registerTask('clean', function() {
         grunt.file.delete('build');

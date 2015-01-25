@@ -10,17 +10,17 @@ describe('RubberBand - runtime', function(){
     var behavior = new cr.behaviors.RubberBand({iam: 'runtime', getDt: function() { return 0.016 }}),
         type = new behavior.Type(behavior, {iam: 'objtype'}),
         actions = behavior.acts,
-        properties = [
-        10,   // Relaxed Length
-        5,    // Stiffness
-        0,    // Gravity
-        0,    // Drag
-        true, // Enabled
-    ];
+        defaultProperties = {
+            relaxedLength: 10,
+            stiffness: 5,
+            gravity: 0,
+            drag: 0,
+            enabled: true,
+        };
 
     describe('tie', function() {
-        var objinst = {iam: 'inst', x: 0, y: 0};
-        var behinst = new behavior.Instance(type, objinst);
+        var objinst = {iam: 'inst', x: 0, y: 0},
+            behinst = new behavior.Instance(type, objinst);
 
         actions.tie.call(behinst, {getFirstPicked: function () { return 'the target instance' }});
 
@@ -30,19 +30,72 @@ describe('RubberBand - runtime', function(){
     });
 
     describe('tick', function() {
-        var bbUpdated = false,
-            objinst = {iam: 'inst', x: 0, y: 0, type: { name: 'hostObject2' }, set_bbox_changed: function() { bbUpdated = true }},
-            behinst = new behavior.Instance(type, objinst);
-        behinst.properties = properties;
-        behinst.onCreate();
-        behinst.fixture = {x: 20, y: 5}
+        var tests = [
+            // plain rubber - plain acceleration, x quadratic in t, v linear in t
+            {dt: 0.008, fixx: 20, fixy: 5, dx: 0, dy: 0, externShiftX: 0, externShiftY: 0,
+                expectedX: 0.0052, expectedY: 0.0013, newdx: 0.4373, newdy: 0.1093},
+            {dt: 0.016, fixx: 20, fixy: 5, dx: 0, dy: 0, externShiftX: 0, externShiftY: 0,
+                expectedX: 0.0209, expectedY: 0.0052, newdx: 0.8746, newdy: 0.2186},
+            {dt: 0.032, fixx: 20, fixy: 5, dx: 0, dy: 0, externShiftX: 0, externShiftY: 0,
+                expectedX: 0.0839, expectedY: 0.0209, newdx: 1.7492, newdy: 0.4372},
 
-        behinst.tick()
+            // picking up external momentum
+            {dt: 0.008, fixx: 0, fixy: 0, dx: 0, dy: 0, externShiftX: -0.08, externShiftY: -0.08, relaxedLength: 100,
+                expectedX: -0.04, expectedY: -0.04, newdx: -5, newdy: -5},
+            {dt: 0.016, fixx: 0, fixy: 0, dx: 0, dy: 0, externShiftX: -0.16, externShiftY: -0.16, relaxedLength: 100,
+                expectedX: -0.08, expectedY: -0.08, newdx: -5, newdy: -5},
+            {dt: 0.032, fixx: 0, fixy: 0, dx: 0, dy: 0, externShiftX: -0.32, externShiftY: -0.32, relaxedLength: 100,
+                expectedX: -0.16, expectedY: -0.16, newdx: -5, newdy: -5},
 
-        it('did update its position according to the rubber band pull', function() {
-            assert(bbUpdated);
-            assert(Math.abs(behinst.inst.x - 0.021) <= 0.001, behinst.inst.x);
-            assert(Math.abs(behinst.inst.y - 0.0052) <= 0.0001, behinst.inst.y);
+            // very short time periods after tabbing or debug-pauses
+            // -> ignore these since they tend to be not consistent and produce 'jumping' (very small dts with 'normal' shifts)
+            {dt: 0.005, fixx: 0, fixy: 0, dx: 0, dy: 0, externShiftX: -0.01, externShiftY: -0.01, relaxedLength: 100,
+                expectedX: 0, expectedY: 0, newdx: 0, newdy: 0},
+
+        ].forEach(function (params) {
+            var bbUpdated = false,
+                objinst = {iam: 'inst', x: 0, y: 0, type: { name: 'hostObject2' },
+                    set_bbox_changed: function() { bbUpdated = true }
+                },
+                behinst = new behavior.Instance(type, objinst);
+            prepareBehaviorInstanceForTest(behinst, params);
+
+            behinst.tick()
+
+            it('updates position correctly - '+commentOnParams(params), function() {
+                assert(bbUpdated);
+                assert(aboutEqual(behinst.inst.x, params.expectedX), behinst.inst.x+' =~= '+params.expectedX);
+                assert(aboutEqual(behinst.inst.y, params.expectedY), behinst.inst.y+' =~= '+params.expectedY);
+            });
+            it('updates speed correctly - '+commentOnParams(params), function() {
+                assert(aboutEqual(behinst.dx, params.newdx), behinst.dx+' =~= '+params.newdx);
+                assert(aboutEqual(behinst.dy, params.newdy), behinst.dy+' =~= '+params.newdy);
+            });
         });
     });
+
+    function aboutEqual(a, b) {
+        return Math.abs(a - b) <= 0.0001;
+    }
+    function prepareBehaviorInstanceForTest(behinst, params) {
+        behinst.runtime = {getDt: function() { return params.dt }};
+        behinst.properties = [];
+        Object.keys(defaultProperties).forEach(function (key) {
+            behinst.properties.push(params[key] ? params[key] : defaultProperties[key]);
+        });
+        behinst.onCreate();
+        behinst.fixture = {x: params.fixx, y: params.fixy}
+        behinst.lastX = -params.externShiftX;
+        behinst.lastY = -params.externShiftY;
+        behinst.dx = params.dx;
+        behinst.dy = params.dy;
+    };
+
+    function commentOnParams(params) {
+        return (!params.relaxedLength || params.relaxedLength <= cr.distanceTo(0, 0, params.fixx, params.fixy) ? 'with rubber band, ' : '')
+            +(params.dt <= 0.01 ? 'short time, ' : params.dt > 0.1 ? 'long time, ' : '')
+            +(params.externShiftX || params.externShiftY ? 'with external force, ' : '')
+            +(params.dx || params.dy ? 'with initial momentum, ' : '');
+    }
 });
+
