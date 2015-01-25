@@ -4,11 +4,10 @@ This behavior can attach one object to another and exercise a force if these two
 It can have additional gravity and drag configured to allow for some quite different use cases.
 
 ## State
-The current implementation should be somewhat functional.
+The current implementation is functional.
 
 There do not (yet?) exist any Expressions or Actions beyond the bare minimum.
 No performance optimizations have been done so far.
-Also the save-load functionality is entirely untested. (saveToJSON, loadFromJSON)
 
 ### Known issues
 * collision checks not yet implemented
