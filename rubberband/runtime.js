@@ -68,7 +68,9 @@ cr.behaviors.RubberBand = function(runtime)
             "enabled": this.enabled,
             "drag": this.drag,
             "dx": this.dx,
-            "dy": this.dy
+            "dy": this.dy,
+            "lastX": this.lastX,
+            "lastY": this.lastY
         };
     };
 
@@ -82,6 +84,8 @@ cr.behaviors.RubberBand = function(runtime)
         this.drag = o["drag"];
         this.dx = o["dx"];
         this.dy = o["dy"];
+        this.lastX = o["lastX"];
+        this.lastY = o["lastY"];
 
         this.isStretched = (this.calculateStretch().displacement > 0);
     };
@@ -99,8 +103,6 @@ cr.behaviors.RubberBand = function(runtime)
         }
 
         this.fixtureUid = -1;
-        this.lastX = this.inst.x;
-        this.lastY = this.inst.y;
     };
 
     behinstProto.tick = function ()
@@ -147,8 +149,6 @@ cr.behaviors.RubberBand = function(runtime)
             this.inst.y += (this.dy + 0.5*(accelY + this.gravity)*dt)*dt;
             this.inst.set_bbox_changed();
         }
-        this.lastX = this.inst.x;
-        this.lastY = this.inst.y;
     };
 
     behinstProto.pickupExternalImpulse = function ()
@@ -158,14 +158,9 @@ cr.behaviors.RubberBand = function(runtime)
             var dt = this.runtime.getDt(this.inst),
                 deltaX = this.inst.x - this.lastX,
                 deltaY = this.inst.y - this.lastY;
-            if (Math.abs(deltaX) > 0.001)
-            {
-                this.dx = (this.dx + deltaX/dt)/2;
-            }
-            if (Math.abs(deltaY) > 0.001)
-            {
-                this.dy = (this.dy + deltaY/dt)/2;
-            }
+            if (dt <= 0.005) { return } // avoid jumps after pausing/when tabbing
+            this.dx = (this.dx + deltaX/dt)/2;
+            this.dy = (this.dy + deltaY/dt)/2;
         }
     }
 
