@@ -32,8 +32,8 @@ describe('RubberBand - runtime', function(){
     describe('tick', function() {
         var tests = [
             // plain rubber - plain acceleration, x quadratic in t, v linear in t
-            {dt: 0.016, fixx: 20, fixy: 5, dx: 0, dy: 0, externShiftX: 0, externShiftY: 0,
-                expectedX: 0.0209, expectedY: 0.0052, newdx: 0.8746, newdy: 0.2186},
+            {dt: 0.016, fixx: 40, fixy: 5, dx: 0, dy: 0, externShiftX: 0, externShiftY: 0,
+                expectedX: 0.1750, expectedY: 0.0219, newdx: 7.2934, newdy: 0.9117},
 
             // picking up external momentum
             {dt: 0.016, fixx: 0, fixy: 0, dx: 0, dy: 0, externShiftX: -0.16, externShiftY: -0.16, relaxedLength: 100,

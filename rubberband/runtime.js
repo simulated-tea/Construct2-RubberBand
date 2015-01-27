@@ -119,6 +119,15 @@ cr.behaviors.RubberBand = function(runtime)
         {
             this.applyBandMovement();
         }
+
+        var diffx = this.inst.x - this.lastX,
+            diffy = this.inst.y - this.lastY;
+        if (-0.1 > diffx || diffx > 0.1      // save draw calls
+            || -0.1 > diffy || diffy > 0.1)  // if nothing moves
+        {
+            this.inst.set_bbox_changed();
+        }
+
         this.lastX = this.inst.x;
         this.lastY = this.inst.y;
     }
@@ -151,11 +160,9 @@ cr.behaviors.RubberBand = function(runtime)
             this.dx -= (this.drag*this.dx);
             this.dy -= (this.drag*this.dy);
         }
-        {
-            this.inst.x += cr.clamp((this.dx + 0.5*(accelX)*this.medianDt)*this.medianDt, -1000, 1000);
-            this.inst.y += cr.clamp((this.dy + 0.5*(accelY + this.gravity)*this.medianDt)*this.medianDt, -1000, 1000);
-            this.inst.set_bbox_changed();
-        }
+
+        this.inst.x += cr.clamp((this.dx + 0.5*(accelX)*this.medianDt)*this.medianDt, -1000, 1000);
+        this.inst.y += cr.clamp((this.dy + 0.5*(accelY + this.gravity)*this.medianDt)*this.medianDt, -1000, 1000);
     };
 
     behinstProto.getLast5MedianDt = function ()
