@@ -30,6 +30,8 @@ AddAction(3, af_none, "Modify Length", "Configuration", "Modify band length by <
 AddNumberParam("New band length", "The length in pixel to set the band to (>=0)", "100");
 AddAction(4, af_none, "Set Length", "Configuration", "Set band length to <b>{0}</b>", "Set the length of the band to a fixed value (>0)", "setLength");
 
+AddAction(5, af_none, "Do crazy stuff", "Configuration", 'i know what it does, hopefully', '', 'goCrazy');
+
 AddExpression(0, ef_return_number, "Get vector X", "", "VectorX", "The current X component of motion (px/s).");
 AddExpression(1, ef_return_number, "Get vector Y", "", "VectorY", "The current Y component of motion (px/s).");
 AddExpression(2, ef_return_number, "Get angle of motion", "", "MovingAngle", "The current angle of motion, in degrees");

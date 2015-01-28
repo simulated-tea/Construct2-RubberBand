@@ -297,6 +297,12 @@ cr.behaviors.RubberBand = function(runtime)
         this.relaxedLength = Math.max(length, 0);
     };
 
+    Acts.prototype.goCrazy = function ()
+    {
+        window.console.log('I want to raycast');
+        //this.relaxedLength = Math.max(length, 0);
+    };
+
     behaviorProto.acts = new Acts();
 
     function Exps() {};
