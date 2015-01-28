@@ -301,6 +301,21 @@ cr.behaviors.RubberBand = function(runtime)
 
     function Exps() {};
 
+	Exps.prototype.VectorX = function (ret)
+	{
+		ret.set_float(this.dx);
+	};
+
+	Exps.prototype.VectorY = function (ret)
+	{
+		ret.set_float(this.dy);
+	};
+
+	Exps.prototype.MovingAngle = function (ret)
+	{
+		ret.set_float(cr.to_degrees(Math.atan2(this.dy, this.dx)));
+	};
+
     behaviorProto.exps = new Exps();
 
 }());
