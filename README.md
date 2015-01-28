@@ -6,8 +6,7 @@ It can have additional gravity and drag configured to allow for some quite diffe
 ## State
 The current implementation is functional.
 
-There do not (yet?) exist any Expressions or Actions beyond the bare minimum.
-No performance optimizations have been done so far.
+No hard performance optimizations have been done so far.
 
 ### Known issues
 * collision checks not yet implemented
