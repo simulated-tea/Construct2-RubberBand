@@ -53,6 +53,7 @@ cr.behaviors.RubberBand = function(runtime)
         this.lastY = this.inst.y;
         this.medianDt = 0.016; // 60 FPS
         this.lastDts = [0.016, 0.016, 0.016, 0.16, 0.16];
+        this.dimension = Math.min(this.inst.width, this.inst.height);
     };
 
     behinstProto.onDestroy = function ()
@@ -117,13 +118,13 @@ cr.behaviors.RubberBand = function(runtime)
         this.pickupExternalImpulse();
         if (this.enabled)
         {
-            this.applyBandMovement();
+            var diff = this.calculateBandMovement();
         }
 
-        var diffx = this.inst.x - this.lastX,
-            diffy = this.inst.y - this.lastY;
-        if (-0.1 > diffx || diffx > 0.1      // save draw calls
-            || -0.1 > diffy || diffy > 0.1)  // if nothing moves
+        this.inst.x += diff.x;
+        this.inst.y += diff.y;
+        if (-0.1 > diff.x || diff.x > 0.1      // save draw calls
+            || -0.1 > diff.y || diff.y > 0.1)  // if nothing moves
         {
             this.inst.set_bbox_changed();
         }
@@ -132,7 +133,7 @@ cr.behaviors.RubberBand = function(runtime)
         this.lastY = this.inst.y;
     }
 
-    behinstProto.applyBandMovement = function ()
+    behinstProto.calculateBandMovement = function ()
     {
         var accelX = 0,
             accelY = 0,
@@ -161,8 +162,10 @@ cr.behaviors.RubberBand = function(runtime)
             this.dy -= (this.drag*this.dy);
         }
 
-        this.inst.x += cr.clamp((this.dx + 0.5*(accelX)*this.medianDt)*this.medianDt, -1000, 1000);
-        this.inst.y += cr.clamp((this.dy + 0.5*(accelY + this.gravity)*this.medianDt)*this.medianDt, -1000, 1000);
+        return {
+            x: cr.clamp((this.dx + 0.5*(accelX)*this.medianDt)*this.medianDt, -1000, 1000),
+            y: cr.clamp((this.dy + 0.5*(accelY + this.gravity)*this.medianDt)*this.medianDt, -1000, 1000),
+        };
     };
 
     behinstProto.getLast5MedianDt = function ()
