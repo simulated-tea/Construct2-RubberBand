@@ -27,7 +27,7 @@ function assert(expr, message) {
   var lineno = call.getLineNumber();
   var src = fs.readFileSync(file, 'utf8');
   var line = src.split('\n')[lineno-1];
-  var src = line.match(/assert\((.*),.*?\)/)[1];
+  var src = line.match(/assert\((.*),?.*?\)/)[1];
 
   var err = new AssertionError({
     message: src +(message ? "\n         Tested value: "+message : ''),

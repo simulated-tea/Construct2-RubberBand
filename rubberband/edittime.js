@@ -3,7 +3,7 @@
     return {
         "name":        "Rubber Band",
         "id":          "RubberBand",
-        "version":     "0.8",
+        "version":     "0.8.0",
         "description": "Tie one object to another via a rubber band",
         "author":      "simulated_tea",
         "help url":    "https://github.com/simulated-tea/Construct2-RubberBand",
@@ -32,6 +32,11 @@ AddAction(4, af_none, "Set Length", "Configuration", "Set band length to <b>{0}<
 
 AddAction(5, af_none, "Do crazy stuff", "Configuration", 'i know what it does, hopefully', '', 'goCrazy');
 
+AddComboParamOption("Disabled");
+AddComboParamOption("Enabled");
+AddComboParam("State", "Set whether to enable or disable the collision detection.");
+AddAction(6, af_none, "Set collision behavior", "", "Set {my} collisions <b>{0}</b>", "Set whether this behavior should check for colliding objects when moving", "setColliding");
+
 AddExpression(0, ef_return_number, "Get vector X", "", "VectorX", "The current X component of motion (px/s).");
 AddExpression(1, ef_return_number, "Get vector Y", "", "VectorY", "The current Y component of motion (px/s).");
 AddExpression(2, ef_return_number, "Get angle of motion", "", "MovingAngle", "The current angle of motion, in degrees");
@@ -43,6 +48,7 @@ var property_list = [
     new cr.Property(ept_float, "Stiffness", 5, "The stength of the force if stretched"),
     new cr.Property(ept_float, "Gravity", 10, "Optional gravity effect, in pixel/second"),
     new cr.Property(ept_float, "Drag", 1, "Optional drag effect"),
+    new cr.Property(ept_combo, "Collision behavior", "Enabled", "Whether to check search for potential collisions while moving", "Disabled|Enabled"),
     new cr.Property(ept_combo, "Initial State", "Enabled", "Whether to initially have the behavior enabled or disabled", "Disabled|Enabled")
 ];
 
