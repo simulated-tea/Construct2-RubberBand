@@ -34,6 +34,8 @@ cr.behaviors.RubberBand = function(runtime)
         this.runtime = type.runtime;
     };
 
+    var toleratedNumericError = 1;
+
     var behinstProto = behaviorProto.Instance.prototype;
 
     behinstProto.onCreate = function()
@@ -241,86 +243,47 @@ cr.behaviors.RubberBand = function(runtime)
         {
             collisionHandler.call(this, diff, collobj);
         }
+        window.console.log('no collision');
     }
 
     behinstProto.oneStepOrCollision = function (diff)
     {
         this.moveAndOnCollisionDo(diff, function (diff, collobj) {
-            var toleratedNumericError = 1;
             this.runtime.pushOutSolid(this.inst, -diff.x, -diff.y, Math.sqrt(diff.x*diff.x + diff.y*diff.y) + toleratedNumericError);
             this.runtime.registerCollision(this.inst, collobj);
             this.lastX = this.inst.x;
             this.lastY = this.inst.y;
             this.calculateBounceOffSpeed(collobj);
+            //var postCollisionDelta = this.getPositionDelta();
+            //if (!movementNegligible(postCollisionDelta))
+            //{
+            //    this.inst.set_bbox_changed();
+            //}
         });
     }
 
     behinstProto.calculateBounceOffSpeed = function (c)
     {
-        var toTheRight = this.inst.x > c.x;
-        var below = this.inst.y > c.y;
-        var alreadyChanged = '';
-        if (toTheRight === below)  // try angled bounce first
-        {
-            var slopeDiagonalRightDown = (c.bquad.bry - c.bquad.midY())/(c.bquad.brx - c.bquad.midX());
-            var slopeToInstance = Math.abs(this.inst.y - c.bquad.midY())/(Math.abs(this.inst.x - c.bquad.midX()) + 1);
-            if ( slopeDiagonalRightDown < slopeToInstance)
-            {
-                if ( (this.inst.y - c.y)*this.dy < 0 )
-                {
-                    this.dy = -this.elasticity*this.dy;
-                    this.dx = 0.5*this.dx; // XXX friction
-                }
-                alreadyChanged = 'y';
-            }
-            else
-            {
-                if ( (this.inst.x - c.x)*this.dx < 0 )
-                {
-                    this.dx = -this.elasticity*this.dx;
-                    this.dy = 0.5*this.dy;
-                }
-                alreadyChanged = 'x';
-            }
-        }
-        else
-        {
-            var slopeDiagonalRightUp = (c.bquad.try_ - c.bquad.midY())/(c.bquad.trx - c.bquad.midX());
-            var slopeToInstance = -Math.abs(this.inst.y - c.bquad.midY())/(Math.abs(this.inst.x - c.bquad.midX()) + 1);
-            if ( slopeDiagonalRightUp < slopeToInstance )
-            {
-                if ( (this.inst.x - c.x)*this.dx < 0 )
-                {
-                    this.dx = -this.elasticity*this.dx;
-                    this.dy = 0.5*this.dy;
-                }
-                alreadyChanged = 'x';
-            }
-            else
-            {
-                if ( (this.inst.y - c.y)*this.dy < 0 )
-                {
-                    this.dy = -this.elasticity*this.dy;
-                    this.dx = 0.5*this.dx;
-                }
-                alreadyChanged = 'y';
-            }
-        }
+        var constellation = this.detectConstellationWith(c);
+        this.flipOneSpeedComponentAwayFrom(c, constellation);       // try angled bounce first
+        this.applyFrictionToOtherSpeedComponent(constellation);
 
-        if (Math.abs(this.dx) > 0.7 || Math.abs(this.dy > 0.7))  // validate angled bounce is working
+        window.console.log('about to validate');
+        if (Math.abs(this.dx) > 0.7 || Math.abs(this.dy > 0.7))     // validate angled bounce is working
         {
             var speed = Math.sqrt(this.dx*this.dx + this.dy*this.dy);
-            var testMoveDistance = 2; // pixel
+            var testMoveDistance = 2; // pixel // could depend on remaining distance not yet moved into collobj ??
             this.inst.x += this.dx / speed * testMoveDistance;
             this.inst.y += this.dy / speed * testMoveDistance;
-            this.inst.set_bbox_changed();
-            var collobj = this.runtime.testOverlapSolid(this.inst);
+            //this.inst.set_bbox_changed();
+            //var collobj = this.runtime.testOverlapSolid(this.inst);
 
-            if (callobj)  // angled bounce failed - switch to reflect
+            if (false)  // angled bounce failed - switch to reflect
             {
+                window.console.log('validation failed');
                 this.inst.x = this.lastX;
                 this.inst.y = this.lastY;
-                if (alreadyChanged === 'x')
+                if (constellation === 'horizontal')
                 {
                     this.dy = -this.elasticity*this.dy;
                 }
@@ -329,6 +292,70 @@ cr.behaviors.RubberBand = function(runtime)
                     this.dx = -this.elasticity*this.dx;
                 }
             }
+            else
+            {
+                window.console.log('validation succeeded');
+            }
+        }
+        else
+        {
+            window.console.log('not fast enough');
+        }
+    }
+
+    behinstProto.detectConstellationWith = function (c)
+    {
+        var toTheRight = this.inst.x > c.x;
+        var below = this.inst.y > c.y;
+        if (toTheRight === below)
+        {
+            var slopeDiagonalRightDown = (c.bquad.bry - c.bquad.midY())/(c.bquad.brx - c.bquad.midX());
+            var slopeToInstance = Math.abs(this.inst.y - c.bquad.midY())/(Math.abs(this.inst.x - c.bquad.midX()) + 1);
+            if ( slopeDiagonalRightDown < slopeToInstance)
+            {
+                return 'vertical';
+            }
+            else
+            {
+                return 'horizontal';
+            }
+        }
+        else
+        {
+            var slopeDiagonalRightUp = (c.bquad.try_ - c.bquad.midY())/(c.bquad.trx - c.bquad.midX());
+            var slopeToInstance = -Math.abs(this.inst.y - c.bquad.midY())/(Math.abs(this.inst.x - c.bquad.midX()) + 1);
+            if ( slopeDiagonalRightUp < slopeToInstance )
+            {
+                return 'horizontal';
+            }
+            else
+            {
+                return 'vertical';
+            }
+        }
+    }
+
+    behinstProto.flipOneSpeedComponentAwayFrom = function (c, direction)
+    {
+        if (direction === 'horizontal' && (this.inst.x - c.x)*this.dx < 0 )
+        {
+            this.dx = -this.elasticity*this.dx;
+        }
+        else if (direction === 'vertical' && (this.inst.y - c.y)*this.dy < 0 )
+        {
+            this.dy = -this.elasticity*this.dy;
+        }
+    }
+
+    behinstProto.applyFrictionToOtherSpeedComponent = function (direction)
+    {
+        if (direction === 'horizontal')
+        {
+            this.dy = 0.5*this.dy; // XXX 0.5 ===> this.friction
+        }
+        else if (direction === 'vertical')
+        {
+            this.dx = 0.5*this.dx;
         }
     }
 
