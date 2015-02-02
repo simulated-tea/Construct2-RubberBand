@@ -10,7 +10,6 @@ No hard performance optimizations have been done so far.
 
 ### Known issues
 * collision checks not yet implemented
-* cannot explicitely change the speed by actions
 * many actions are still missing: cannot change config at runtime
 * if complex chains are shaken intensely they might spin around like crazy and not come back to rest or fly off to inifinity.
   Try increasing the drag to avoid this (e.g drag >= stiffness).

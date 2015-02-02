@@ -32,10 +32,7 @@ cr.behaviors.RubberBand = function(runtime)
         this.behavior = type.behavior;
         this.inst = inst;
         this.runtime = type.runtime;
-        this.stuckTracker = new simulatedTea.RubberBand.StuckTracker();
     };
-
-    var toleratedNumericError = 1;
 
     var behinstProto = behaviorProto.Instance.prototype;
 
@@ -45,11 +42,7 @@ cr.behaviors.RubberBand = function(runtime)
         this.stiffness = this.properties[1]*0.1; // for nicer default config values
         this.gravity = this.properties[2]*100;
         this.drag = this.properties[3]*0.01;
-        this.collisionsEnabled = this.properties[4]; // 0=disabled, 1=enabled
-        this.enabled = this.properties[5];
-
-        this.elasticity = 0.1;
-        this.stuckTime = 0;
+        this.enabled = this.properties[4]; // 0=disabled, 1=enabled
 
         this.fixture = null;
         this.fixtureUid = -1;
@@ -60,6 +53,7 @@ cr.behaviors.RubberBand = function(runtime)
         this.lastY = this.inst.y;
         this.medianDt = 0.016; // 60 FPS
         this.lastDts = [0.016, 0.016, 0.016, 0.16, 0.16];
+        this.dimension = Math.min(this.inst.width, this.inst.height);
     };
 
     behinstProto.onDestroy = function ()
@@ -74,7 +68,6 @@ cr.behaviors.RubberBand = function(runtime)
             "relaxedLength": this.relaxedLength,
             "stiffness": this.stiffness,
             "gravity": this.gravity,
-            "collisionsEnabled": this.collisionsEnabled,
             "enabled": this.enabled,
             "drag": this.drag,
             "dx": this.dx,
@@ -92,7 +85,6 @@ cr.behaviors.RubberBand = function(runtime)
         this.relaxedLength = o["relaxedLength"];
         this.stiffness = o["stiffness"];
         this.gravity = o["gravity"];
-        this.collisionsEnabled = o["collisionsEnabled"];
         this.enabled = o["enabled"];
         this.drag = o["drag"];
         this.dx = o["dx"];
@@ -102,7 +94,6 @@ cr.behaviors.RubberBand = function(runtime)
         this.medianDt = o["medianDt"];
         this.lastDts = o["lastDts"];
 
-        this.elasticity = 0.1;
         this.isStretched = (this.calculateStretch().displacement > 0);
     };
 
@@ -125,76 +116,21 @@ cr.behaviors.RubberBand = function(runtime)
     {
         this.getLast5MedianDt();
         this.pickupExternalImpulse();
-        var diff = { x: 0, y: 0 };
-
-        if (this.enabled && !this.stuckTracker.isStuck())
+        if (this.enabled)
         {
-            diff = this.calculateBandMovement();
+            var diff = this.calculateBandMovement();
         }
 
-        if (this.stuckTracker.isStuck()) {window.console.log('stuck '+this.stuckTracker.unmovedTime)};
-        window.console.log('moving by band: x: '+diff.x+', y: '+diff.y)
-        if (!movementNegligible(diff))  // save draw calls (and collisions) if nothing moves
+        this.inst.x += diff.x;
+        this.inst.y += diff.y;
+        if (-0.1 > diff.x || diff.x > 0.1      // save draw calls
+            || -0.1 > diff.y || diff.y > 0.1)  // if nothing moves
         {
-            if (this.collisionsEnabled)
-            {
-                this.inst.update_bbox();
-                if (this.isMovingSlow(diff))
-                {
-                    this.oneStepOrCollision(diff);
-                }
-                else
-                {
-                    // i should raycast, only how?
-                    // just fly through for now
-                    this.inst.x += diff.x;
-                    this.inst.y += diff.y;
-                    this.inst.set_bbox_changed();
-                }
-            }
-            else
-            {
-                this.inst.x += diff.x;
-                this.inst.y += diff.y;
-                this.inst.set_bbox_changed();
-            }
-        }
-
-        var effectiveMove = {
-            x: this.inst.x - this.lastX,
-            y: this.inst.y - this.lastY
-        };
-        window.console.log('measured movement - x: '+effectiveMove.x+', y: '+effectiveMove.y);
-        if (movementNegligible(effectiveMove))
-        {
-            this.stuckTracker.registerUnmoved(this.medianDt);
-        }
-        else
-        {
-            this.stuckTracker.registerFreed();
+            this.inst.set_bbox_changed();
         }
 
         this.lastX = this.inst.x;
         this.lastY = this.inst.y;
-    }
-
-    behinstProto.getLast5MedianDt = function ()
-    {
-        var dt = this.runtime.getDt(this.inst);
-        this.lastDts.pop();
-        this.lastDts.unshift(dt);
-        var sample = this.lastDts.slice().sort(function(a,b) {return a-b});
-        this.medianDt = sample[2];
-    }
-
-    behinstProto.pickupExternalImpulse = function ()
-    {
-        if (this.lastX !== this.inst.x || this.lastY !== this.inst.y) // there are there other sources of movement
-        {
-            var delta = this.getPositionDelta();
-            this.dx = (this.dx + delta.x/this.medianDt)/2;
-            this.dy = (this.dy + delta.y/this.medianDt)/2;
-        }
     }
 
     behinstProto.calculateBandMovement = function ()
@@ -232,145 +168,23 @@ cr.behaviors.RubberBand = function(runtime)
         };
     };
 
-    function movementNegligible (vector)
+    behinstProto.getLast5MedianDt = function ()
     {
-        return (Math.abs(vector.x) < 0.1 && Math.abs(vector.y) < 0.1)
+        var dt = this.runtime.getDt(this.inst);
+        this.lastDts.pop();
+        this.lastDts.unshift(dt);
+        var sample = this.lastDts.slice().sort(function(a,b) {return a-b});
+        this.medianDt = sample[2];
     }
 
-    behinstProto.getPositionDelta = function ()
+    behinstProto.pickupExternalImpulse = function ()
     {
-        return {
-            x: this.inst.x - this.lastX,
-            y: this.inst.y - this.lastY
-        }
-    }
-
-    behinstProto.isMovingSlow = function (diff)
-    {
-        return (Math.abs(diff.x) < this.inst.bbox.width()
-            && Math.abs(diff.y) < this.inst.bbox.height())
-    }
-
-    behinstProto.moveAndOnCollisionDo = function (diff, collisionHandler)
-    {
-        this.inst.x += diff.x;
-        this.inst.y += diff.y;
-        this.inst.set_bbox_changed();
-        var collobj = this.runtime.testOverlapSolid(this.inst);
-        if (collobj)
+        if (this.lastX !== this.inst.x || this.lastY !== this.inst.y) // there are there other sources of movement
         {
-            collisionHandler.call(this, diff, collobj);
-        }
-    }
-
-    behinstProto.oneStepOrCollision = function (diff)
-    {
-        this.moveAndOnCollisionDo(diff, function (diff, collobj) {
-            this.runtime.pushOutSolid(this.inst, -diff.x, -diff.y, Math.sqrt(diff.x*diff.x + diff.y*diff.y) + toleratedNumericError);
-            this.runtime.registerCollision(this.inst, collobj);
-            var pushbackX = this.inst.x - this.lastX - diff.x;
-            var pushbackY = this.inst.y - this.lastY - diff.y;
-            window.console.log('moveing back via collision: x: '+pushbackX+', y: '+pushbackY);
-            this.lastX = this.inst.x;
-            this.lastY = this.inst.y;
-            this.calculateBounceOffSpeed(collobj);
-            //var postCollisionDelta = this.getPositionDelta();
-            //if (!movementNegligible(postCollisionDelta))
-            //{
-            //    this.inst.set_bbox_changed();
-            //}
-        });
-    }
-
-    behinstProto.calculateBounceOffSpeed = function (c)
-    {
-        var constellation = this.detectConstellationWith(c);
-        this.flipOneSpeedComponentAwayFrom(c, constellation);       // try angled bounce first
-        this.applyFrictionToOtherSpeedComponent(constellation);
-
-        if (Math.abs(this.dx) > 0.7 || Math.abs(this.dy > 0.7))     // validate angled bounce is working
-        {
-            var speed = Math.sqrt(this.dx*this.dx + this.dy*this.dy);
-            var testMoveDistance = 2; // pixel // could depend on remaining distance not yet moved into collobj ??
-            //window.console.log('speed: '+speed);
-            var deltaX =  this.dx / speed * testMoveDistance;
-            var deltaY =  this.dy / speed * testMoveDistance;
-            window.console.log('test move: x: '+deltaX+', y: '+deltaY);
-            this.inst.x += deltaX;
-            this.inst.y += deltaY;
-            //this.inst.set_bbox_changed();
-            //var collobj = this.runtime.testOverlapSolid(this.inst);
-
-            if (false)  // angled bounce failed - switch to reflect
-            {
-                window.console.log('validation failed');
-                this.inst.x = this.lastX;
-                this.inst.y = this.lastY;
-                if (constellation === 'horizontal')
-                {
-                    this.dy = -this.elasticity*this.dy;
-                }
-                else
-                {
-                    this.dx = -this.elasticity*this.dx;
-                }
-            }
-        }
-    }
-
-    behinstProto.detectConstellationWith = function (c)
-    {
-        var toTheRight = this.inst.x > c.x;
-        var below = this.inst.y > c.y;
-        if (toTheRight === below)
-        {
-            var slopeDiagonalRightDown = (c.bquad.bry - c.bquad.midY())/(c.bquad.brx - c.bquad.midX());
-            var slopeToInstance = Math.abs(this.inst.y - c.bquad.midY())/(Math.abs(this.inst.x - c.bquad.midX()) + 1);
-            if ( slopeDiagonalRightDown < slopeToInstance)
-            {
-                return 'vertical';
-            }
-            else
-            {
-                return 'horizontal';
-            }
-        }
-        else
-        {
-            var slopeDiagonalRightUp = (c.bquad.try_ - c.bquad.midY())/(c.bquad.trx - c.bquad.midX());
-            var slopeToInstance = -Math.abs(this.inst.y - c.bquad.midY())/(Math.abs(this.inst.x - c.bquad.midX()) + 1);
-            if ( slopeDiagonalRightUp < slopeToInstance )
-            {
-                return 'horizontal';
-            }
-            else
-            {
-                return 'vertical';
-            }
-        }
-    }
-
-    behinstProto.flipOneSpeedComponentAwayFrom = function (c, direction)
-    {
-        if (direction === 'horizontal' && (this.inst.x - c.x)*this.dx < 0 )
-        {
-            this.dx = -this.elasticity*this.dx;
-        }
-        else if (direction === 'vertical' && (this.inst.y - c.y)*this.dy < 0 )
-        {
-            this.dy = -this.elasticity*this.dy;
-        }
-    }
-
-    behinstProto.applyFrictionToOtherSpeedComponent = function (direction)
-    {
-        if (direction === 'horizontal')
-        {
-            this.dy = 0.5*this.dy; // XXX 0.5 ===> this.friction
-        }
-        else if (direction === 'vertical')
-        {
-            this.dx = 0.5*this.dx;
+            var deltaX = this.inst.x - this.lastX,
+                deltaY = this.inst.y - this.lastY;
+            this.dx = (this.dx + deltaX/this.medianDt)/2;
+            this.dy = (this.dy + deltaY/this.medianDt)/2;
         }
     }
 
@@ -390,17 +204,16 @@ cr.behaviors.RubberBand = function(runtime)
 
     behinstProto.getDeltaVector = function ()
     {
+        var result = {};
         if (!this.fixture)
         {
-            return {
-                x: 0,
-                y: 0
-            }
+            result.x = 0;
+            result.y = 0;
+            return result;
         }
-        return {
-            x: this.fixture.x - this.inst.x,
-            y: this.fixture.y - this.inst.y
-        }
+        result.x = this.fixture.x - this.inst.x;
+        result.y = this.fixture.y - this.inst.y;
+        return result;
     }
 
     /**BEGIN-PREVIEWONLY**/
@@ -417,8 +230,7 @@ cr.behaviors.RubberBand = function(runtime)
                 {"name": "Spring Rate", "value": this.stiffness},
                 {"name": "Gravity", "value": this.gravity},
                 {"name": "Drag", "value": this.drag},
-                {"name": "Colliding", "value": !! this.collisionsEnabled},
-                {"name": "Enabled", "value": !! this.enabled},
+                {"name": "Enabled", "value": !! this.enabled}
             ]
         });
     };
@@ -433,8 +245,6 @@ cr.behaviors.RubberBand = function(runtime)
             this.gravity = value;
         if (name === "Drag")
             this.drag = value;
-        if (name === "Colliding")
-            this.collisionsEnabled = value;
         if (name === "Enabled")
             this.enabled = value;
     };
@@ -488,17 +298,6 @@ cr.behaviors.RubberBand = function(runtime)
     Acts.prototype.setLength = function (length)
     {
         this.relaxedLength = Math.max(length, 0);
-    };
-
-    Acts.prototype.setColliding = function (en)
-    {
-        this.collisionsEnabled = (en === 1);
-    };
-
-    Acts.prototype.goCrazy = function ()
-    {
-        window.console.log('I want to raycast');
-        //this.relaxedLength = Math.max(length, 0);
     };
 
     behaviorProto.acts = new Acts();
