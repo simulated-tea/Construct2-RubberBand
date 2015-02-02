@@ -36,8 +36,8 @@ describe('RubberBand - runtime', function(){
                 expectedX: 0.1750, expectedY: 0.0219, newdx: 7.2934, newdy: 0.9117},
 
             // picking up external momentum
-            {dt: 0.016, fixx: 0, fixy: 0, dx: 0, dy: 0, externShiftX: -0.16, externShiftY: -0.16, relaxedLength: 100,
-                expectedX: -0.08, expectedY: -0.08, newdx: -5, newdy: -5},
+            {dt: 0.016, fixx: 0, fixy: 0, dx: 0, dy: 0, externShiftX: -0.32, externShiftY: -0.32, relaxedLength: 100,
+                expectedX: -0.16, expectedY: -0.16, newdx: -10, newdy: -10},
         ].forEach(function (params) {
             var bbUpdated = false,
                 objinst = {iam: 'inst', x: 0, y: 0, type: { name: 'hostObject2' },

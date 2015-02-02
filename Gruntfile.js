@@ -1,6 +1,9 @@
 module.exports = function(grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
+        options: {
+            no_color: true
+        },
         copy: {
             deploy: {
                 src: 'rubberband/*',
@@ -28,7 +31,9 @@ module.exports = function(grunt) {
         },
         mochaTest: {
           test: {
-            options: {},
+            options: {
+                no_color: true
+            },
             src: 'test/*.js'
           }
         }
