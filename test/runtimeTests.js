@@ -7,6 +7,9 @@ describe('RubberBand - runtime', function(){
     global.window = require('./helper/browserMock');
     global.assert2 = function() {};
     require("./../rubberband/runtime")
+    global.simulatedTea = {};
+    global.simulatedTea.RubberBand = {};
+    global.simulatedTea.RubberBand.StuckTracker = require("./../rubberband/StuckTracker")
 
     var behavior = new cr.behaviors.RubberBand({
             iam: 'runtime',

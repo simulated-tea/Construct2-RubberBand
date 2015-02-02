@@ -32,6 +32,7 @@ cr.behaviors.RubberBand = function(runtime)
         this.behavior = type.behavior;
         this.inst = inst;
         this.runtime = type.runtime;
+        this.stuckTracker = new simulatedTea.RubberBand.StuckTracker();
     };
 
     var toleratedNumericError = 1;
@@ -48,7 +49,7 @@ cr.behaviors.RubberBand = function(runtime)
         this.enabled = this.properties[5];
 
         this.elasticity = 0.1;
-        this.stuckMillies = 0;
+        this.stuckTime = 0;
 
         this.fixture = null;
         this.fixtureUid = -1;
@@ -125,11 +126,14 @@ cr.behaviors.RubberBand = function(runtime)
         this.getLast5MedianDt();
         this.pickupExternalImpulse();
         var diff = { x: 0, y: 0 };
-        if (this.enabled)
+
+        if (this.enabled && !this.stuckTracker.isStuck())
         {
             diff = this.calculateBandMovement();
         }
 
+        if (this.stuckTracker.isStuck()) {window.console.log('stuck '+this.stuckTracker.unmovedTime)};
+        window.console.log('moving by band: x: '+diff.x+', y: '+diff.y)
         if (!movementNegligible(diff))  // save draw calls (and collisions) if nothing moves
         {
             if (this.collisionsEnabled)
@@ -154,6 +158,20 @@ cr.behaviors.RubberBand = function(runtime)
                 this.inst.y += diff.y;
                 this.inst.set_bbox_changed();
             }
+        }
+
+        var effectiveMove = {
+            x: this.inst.x - this.lastX,
+            y: this.inst.y - this.lastY
+        };
+        window.console.log('measured movement - x: '+effectiveMove.x+', y: '+effectiveMove.y);
+        if (movementNegligible(effectiveMove))
+        {
+            this.stuckTracker.registerUnmoved(this.medianDt);
+        }
+        else
+        {
+            this.stuckTracker.registerFreed();
         }
 
         this.lastX = this.inst.x;
@@ -243,7 +261,6 @@ cr.behaviors.RubberBand = function(runtime)
         {
             collisionHandler.call(this, diff, collobj);
         }
-        window.console.log('no collision');
     }
 
     behinstProto.oneStepOrCollision = function (diff)
@@ -251,6 +268,9 @@ cr.behaviors.RubberBand = function(runtime)
         this.moveAndOnCollisionDo(diff, function (diff, collobj) {
             this.runtime.pushOutSolid(this.inst, -diff.x, -diff.y, Math.sqrt(diff.x*diff.x + diff.y*diff.y) + toleratedNumericError);
             this.runtime.registerCollision(this.inst, collobj);
+            var pushbackX = this.inst.x - this.lastX - diff.x;
+            var pushbackY = this.inst.y - this.lastY - diff.y;
+            window.console.log('moveing back via collision: x: '+pushbackX+', y: '+pushbackY);
             this.lastX = this.inst.x;
             this.lastY = this.inst.y;
             this.calculateBounceOffSpeed(collobj);
@@ -268,13 +288,16 @@ cr.behaviors.RubberBand = function(runtime)
         this.flipOneSpeedComponentAwayFrom(c, constellation);       // try angled bounce first
         this.applyFrictionToOtherSpeedComponent(constellation);
 
-        window.console.log('about to validate');
         if (Math.abs(this.dx) > 0.7 || Math.abs(this.dy > 0.7))     // validate angled bounce is working
         {
             var speed = Math.sqrt(this.dx*this.dx + this.dy*this.dy);
             var testMoveDistance = 2; // pixel // could depend on remaining distance not yet moved into collobj ??
-            this.inst.x += this.dx / speed * testMoveDistance;
-            this.inst.y += this.dy / speed * testMoveDistance;
+            //window.console.log('speed: '+speed);
+            var deltaX =  this.dx / speed * testMoveDistance;
+            var deltaY =  this.dy / speed * testMoveDistance;
+            window.console.log('test move: x: '+deltaX+', y: '+deltaY);
+            this.inst.x += deltaX;
+            this.inst.y += deltaY;
             //this.inst.set_bbox_changed();
             //var collobj = this.runtime.testOverlapSolid(this.inst);
 
@@ -292,14 +315,6 @@ cr.behaviors.RubberBand = function(runtime)
                     this.dx = -this.elasticity*this.dx;
                 }
             }
-            else
-            {
-                window.console.log('validation succeeded');
-            }
-        }
-        else
-        {
-            window.console.log('not fast enough');
         }
     }
 

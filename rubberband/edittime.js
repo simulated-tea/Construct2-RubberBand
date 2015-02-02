@@ -8,6 +8,7 @@
         "author":      "simulated_tea",
         "help url":    "https://github.com/simulated-tea/Construct2-RubberBand",
         "category":    "Movements",
+        "dependency":  "StuckTracker.js",
         "flags":       0
     };
 };
