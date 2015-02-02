@@ -123,8 +123,7 @@ cr.behaviors.RubberBand = function(runtime)
 
         this.inst.x += diff.x;
         this.inst.y += diff.y;
-        if (-0.1 > diff.x || diff.x > 0.1      // save draw calls
-            || -0.1 > diff.y || diff.y > 0.1)  // if nothing moves
+        if (Math.abs(diff.x) > 0.1 || Math.abs(diff.y) > 0.1)  // save draw calls if nothing moves
         {
             this.inst.set_bbox_changed();
         }
