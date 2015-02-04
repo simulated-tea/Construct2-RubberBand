@@ -116,13 +116,16 @@ cr.behaviors.RubberBand = function(runtime)
     {
         this.getLast5MedianDt();
         this.pickupExternalImpulse();
+
+        var diff = {x: 0, y: 0};
         if (this.enabled)
         {
-            var diff = this.calculateBandMovement();
+            diff = this.calculateBandMovement();
         }
 
         this.inst.x += diff.x;
         this.inst.y += diff.y;
+
         if (Math.abs(diff.x) > 0.1 || Math.abs(diff.y) > 0.1)  // save draw calls if nothing moves
         {
             this.inst.set_bbox_changed();
