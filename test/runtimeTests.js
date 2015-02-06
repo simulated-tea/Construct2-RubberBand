@@ -4,6 +4,7 @@ var assert = require("./helper/better-assert")
 
 describe('RubberBand - runtime', function(){
     global.cr = require('./helper/crMock');
+    global.window = require('./helper/browserMock');
     global.assert2 = function() {};
     require("./../rubberband/runtime")
 
