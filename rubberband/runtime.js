@@ -181,13 +181,18 @@ cr.behaviors.RubberBand = function(runtime)
 
     behinstProto.pickupExternalImpulse = function ()
     {
-        if (this.lastX !== this.inst.x || this.lastY !== this.inst.y) // there are there other sources of movement
+        if (otherSourcesOfMovementExist())
         {
             var deltaX = this.inst.x - this.lastX,
                 deltaY = this.inst.y - this.lastY;
             this.dx = (this.dx + deltaX/this.medianDt)/2;
             this.dy = (this.dy + deltaY/this.medianDt)/2;
         }
+    }
+
+    behinstProto.otherSourcesOfMovementExist = function ()
+    {
+        return this.lastX !== this.inst.x || this.lastY !== this.inst.y
     }
 
     behinstProto.calculateStretch = function ()
