@@ -3,7 +3,7 @@
     return {
         "name":        "Rubber Band",
         "id":          "RubberBand",
-        "version":     "0.9",
+        "version":     "1.0",
         "description": "Tie one object to another via a rubber band",
         "author":      "simulated_tea",
         "help url":    "https://github.com/simulated-tea/Construct2-RubberBand",

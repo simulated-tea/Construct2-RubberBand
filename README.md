@@ -5,7 +5,7 @@ It can have additional gravity and drag configured to allow for some quite diffe
 
 ## State
 The current implementation is functional.
-No hard performance optimizations have been done so far.
+Performance was found to be satisfactory upto this point. (No tuning seems to be needed.)
 
 ### Known issues
 * ~~collision checks not yet implemented~~ collisions, beeing pretty involved, will at most be a separate behavior
