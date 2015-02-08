@@ -1,7 +1,7 @@
 {
   "name": "RubberBand",
   "readableName": "Rubber Band",
-  "version": "0.8",
+  "version": "0.9",
   "description": "A Construct 2 Movement Behavior to emulate a rubber band",
   "main": "none",
   "dependencies": {

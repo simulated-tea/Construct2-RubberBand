@@ -181,7 +181,7 @@ cr.behaviors.RubberBand = function(runtime)
 
     behinstProto.pickupExternalImpulse = function ()
     {
-        if (otherSourcesOfMovementExist())
+        if (this.otherSourcesOfMovementExist())
         {
             var deltaX = this.inst.x - this.lastX,
                 deltaY = this.inst.y - this.lastY;
@@ -302,9 +302,24 @@ cr.behaviors.RubberBand = function(runtime)
         this.relaxedLength = Math.max(this.relaxedLength + delta, 0);
     };
 
-    Acts.prototype.setLength = function (length)
+    Acts.prototype.setLength = function (value)
     {
-        this.relaxedLength = Math.max(length, 0);
+        this.relaxedLength = Math.max(value, 0);
+    };
+
+    Acts.prototype.setStiffness = function (value)
+    {
+        this.stiffness = value*0.1;
+    };
+
+    Acts.prototype.setGravity = function (value)
+    {
+        this.gravity = value*100;
+    };
+
+    Acts.prototype.setDrag = function (value)
+    {
+        this.drag = value*0.01;
     };
 
     behaviorProto.acts = new Acts();

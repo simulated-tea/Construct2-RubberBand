@@ -3,7 +3,7 @@
     return {
         "name":        "Rubber Band",
         "id":          "RubberBand",
-        "version":     "0.8",
+        "version":     "0.9",
         "description": "Tie one object to another via a rubber band",
         "author":      "simulated_tea",
         "help url":    "https://github.com/simulated-tea/Construct2-RubberBand",
@@ -29,6 +29,12 @@ AddNumberParam("Band length change", "The number of pixel to make the band longe
 AddAction(3, af_none, "Modify Length", "Configuration", "Modify band length by <b>{0}</b>", "Modify the length of the band. Length will not go below 0.", "modifyLength");
 AddNumberParam("New band length", "The length in pixel to set the band to (>=0)", "100");
 AddAction(4, af_none, "Set Length", "Configuration", "Set band length to <b>{0}</b>", "Set the length of the band to a fixed value (>0)", "setLength");
+AddNumberParam("Stiffness", "The new value of stiffness", "5");
+AddAction(5, af_none, "Set stiffness", "Configuration", "Set bands stiffness to <b>{0}</b>", "Set new value for the bands stiffness", "setStiffness");
+AddNumberParam("Gravity", "The new value of gravity", "10");
+AddAction(6, af_none, "Set gravity", "Configuration", "Set applied gravity to <b>{0}</b>", "Set the gravity for the tied item", "setGravity");
+AddNumberParam("Drag", "The new value of drag", "1");
+AddAction(7, af_none, "Set drag", "Configuration", "Set applied drag to <b>{0}</b>", "Set the drag for the tied item", "setDrag");
 
 AddExpression(0, ef_return_number, "Get vector X", "", "VectorX", "The current X component of motion (px/s).");
 AddExpression(1, ef_return_number, "Get vector Y", "", "VectorY", "The current Y component of motion (px/s).");
