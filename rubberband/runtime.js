@@ -48,12 +48,15 @@ cr.behaviors.RubberBand = function(runtime)
         this.fixtureUid = -1;
         this.dx = 0;
         this.dy = 0;
-        this.isStretched = false;
         this.lastX = this.inst.x;
         this.lastY = this.inst.y;
         this.medianDt = 0.016; // 60 FPS
         this.lastDts = [0.016, 0.016, 0.016, 0.16, 0.16];
-        this.dimension = Math.min(this.inst.width, this.inst.height);
+
+        // working set to avoid object creations during tick
+        this.diff = {x: 0, y: 0};
+        this.vectorToTiee = {x: 0, y: 0};
+        this.stretch = {displacement: 0, ratio: 0};
     };
 
     behinstProto.onDestroy = function ()
@@ -94,7 +97,10 @@ cr.behaviors.RubberBand = function(runtime)
         this.medianDt = o["medianDt"];
         this.lastDts = o["lastDts"];
 
-        this.isStretched = (this.calculateStretch().displacement > 0);
+        this.diff = {x: 0, y: 0};
+        this.vectorToTiee = {x: 0, y: 0};
+        this.stretch = {displacement: 0, ratio: 0};
+        this.calculateStretch();
     };
 
     behinstProto.afterLoad = function ()
@@ -117,17 +123,18 @@ cr.behaviors.RubberBand = function(runtime)
         this.getLast5MedianDt();
         this.pickupExternalImpulse();
 
-        var diff = {x: 0, y: 0};
+        this.diff.x = 0;
+        this.diff.y = 0;
+
         if (this.enabled)
         {
-            diff = this.calculateBandMovement();
+            this.calculateBandMovement();
         }
 
-        this.inst.x += diff.x;
-        this.inst.y += diff.y;
-
-        if (Math.abs(diff.x) > 0.1 || Math.abs(diff.y) > 0.1)  // save draw calls if nothing moves
+        if (Math.abs(this.diff.x) > 0.1 || Math.abs(this.diff.y) > 0.1)  // save draw calls if nothing moves
         {
+            this.inst.x += this.diff.x;
+            this.inst.y += this.diff.y;
             this.inst.set_bbox_changed();
         }
 
@@ -138,18 +145,16 @@ cr.behaviors.RubberBand = function(runtime)
     behinstProto.calculateBandMovement = function ()
     {
         var accelX = 0,
-            accelY = 0,
-            dt = this.runtime.getDt(this.inst),
-            delta = this.getDeltaVector(),
-            stretch = this.calculateStretch();
+            accelY = 0;
+        this.calculateTieeVector();
+        this.calculateStretch();
         if (this.fixture)
         {
-            this.isStretched = (stretch.displacement > 0);
-            if (this.isStretched)
+            if (this.stretch.displacement > 0)
             {
-                var accel = stretch.displacement*this.stiffness;
-                accelX = accel*delta.x*stretch.ratio;
-                accelY = accel*delta.y*stretch.ratio;
+                var accel = this.stretch.displacement*this.stiffness;
+                accelX = accel*this.vectorToTiee.x*this.stretch.ratio;
+                accelY = accel*this.vectorToTiee.y*this.stretch.ratio;
                 this.dx += this.medianDt*accelX;
                 this.dy += this.medianDt*accelY;
             }
@@ -164,29 +169,23 @@ cr.behaviors.RubberBand = function(runtime)
             this.dy -= (this.drag*this.dy);
         }
 
-        return {
-            x: cr.clamp((this.dx + 0.5*(accelX)*this.medianDt)*this.medianDt, -1000, 1000),
-            y: cr.clamp((this.dy + 0.5*(accelY + this.gravity)*this.medianDt)*this.medianDt, -1000, 1000),
-        };
+        this.diff.x = cr.clamp((this.dx + 0.5*(accelX)*this.medianDt)*this.medianDt, -1000, 1000);
+        this.diff.y = cr.clamp((this.dy + 0.5*(accelY + this.gravity)*this.medianDt)*this.medianDt, -1000, 1000);
     };
 
     behinstProto.getLast5MedianDt = function ()
     {
-        var dt = this.runtime.getDt(this.inst);
         this.lastDts.pop();
-        this.lastDts.unshift(dt);
-        var sample = this.lastDts.slice().sort(function(a,b) {return a-b});
-        this.medianDt = sample[2];
+        this.lastDts.unshift(this.runtime.getDt(this.inst));
+        this.medianDt = this.lastDts.slice().sort(function(a,b) {return a-b})[2];
     }
 
     behinstProto.pickupExternalImpulse = function ()
     {
         if (this.otherSourcesOfMovementExist())
         {
-            var deltaX = this.inst.x - this.lastX,
-                deltaY = this.inst.y - this.lastY;
-            this.dx = (this.dx + deltaX/this.medianDt)/2;
-            this.dy = (this.dy + deltaY/this.medianDt)/2;
+            this.dx = (this.dx + (this.inst.x - this.lastX)/this.medianDt)/2;
+            this.dy = (this.dy + (this.inst.y - this.lastY)/this.medianDt)/2;
         }
     }
 
@@ -199,28 +198,24 @@ cr.behaviors.RubberBand = function(runtime)
     {
         if (!this.fixture)
         {
-            return 0;
+            return;
         }
         var distance = cr.distanceTo(this.fixture.x, this.fixture.y, this.inst.x, this.inst.y),
-            displacement = Math.max(distance - this.relaxedLength, 0),
-            result = {};
-        result.ratio = displacement/distance;
-        result.displacement = displacement;
-        return result;
+            displacement = Math.max(distance - this.relaxedLength, 0);
+        this.stretch.ratio = displacement/distance;
+        this.stretch.displacement = displacement;
     }
 
-    behinstProto.getDeltaVector = function ()
+    behinstProto.calculateTieeVector = function ()
     {
-        var result = {};
         if (!this.fixture)
         {
-            result.x = 0;
-            result.y = 0;
-            return result;
+            this.vectorToTiee.x = 0;
+            this.vectorToTiee.y = 0;
+            return;
         }
-        result.x = this.fixture.x - this.inst.x;
-        result.y = this.fixture.y - this.inst.y;
-        return result;
+        this.vectorToTiee.x = this.fixture.x - this.inst.x;
+        this.vectorToTiee.y = this.fixture.y - this.inst.y;
     }
 
     /**BEGIN-PREVIEWONLY**/
@@ -229,8 +224,8 @@ cr.behaviors.RubberBand = function(runtime)
         propsections.push({
             "title": this.type.name,
             "properties": [
-                {"name": "fixtureName/UID", "value": this.fixture ? this.fixture.type.name+"/"+this.fixture.uid : "-/-", "readonly": true},
-                {"name": "Stretchedness", "value": this.isStretched, "readonly": true},
+                {"name": "FixtureName/UID", "value": this.fixture ? this.fixture.type.name+"/"+this.fixture.uid : "-/-", "readonly": true},
+                {"name": "Distance streched", "value": this.stretch.displacement, "readonly": true},
                 {"name": "Velocity.x", "value": this.dx, "readonly": true},
                 {"name": "Velocity.y", "value": this.dy, "readonly": true},
                 {"name": "Relaxed Length", "value": this.relaxedLength},
@@ -259,7 +254,7 @@ cr.behaviors.RubberBand = function(runtime)
 
     function Cnds() {};
 
-    Cnds.prototype.IsStretched = function () { return this.isStretched }
+    Cnds.prototype.IsStretched = function () { return this.stretch.displacement > 0 }
     Cnds.prototype.IsTied = function () { return !! this.fixture }
     Cnds.prototype.IsEnabled = function () { return this.enabled }
 
@@ -284,7 +279,8 @@ cr.behaviors.RubberBand = function(runtime)
     Acts.prototype.cut = function ()
     {
         this.fixture = null;
-        this.isStretched = false;
+        this.stretch.displacement = 0;
+        this.stretch.ratio = 0;
     };
 
     Acts.prototype.setEnabled = function (en)
@@ -297,9 +293,9 @@ cr.behaviors.RubberBand = function(runtime)
         }
     };
 
-    Acts.prototype.modifyLength = function (delta)
+    Acts.prototype.modifyLength = function (value)
     {
-        this.relaxedLength = Math.max(this.relaxedLength + delta, 0);
+        this.relaxedLength = Math.max(this.relaxedLength + value, 0);
     };
 
     Acts.prototype.setLength = function (value)
