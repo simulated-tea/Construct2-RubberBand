@@ -67,35 +67,35 @@ cr.behaviors.RubberBand = function(runtime)
     behinstProto.saveToJSON = function ()
     {
         return {
-            "fixtureUid": this.fixture ? this.fixture.uid : -1,
-            "relaxedLength": this.relaxedLength,
-            "stiffness": this.stiffness,
-            "gravity": this.gravity,
-            "enabled": this.enabled,
-            "drag": this.drag,
+            "fu": this.fixture ? this.fixture.uid : -1,
+            "rl": this.relaxedLength,
+            "s": this.stiffness,
+            "g": this.gravity,
+            "e": this.enabled,
+            "d": this.drag,
             "dx": this.dx,
             "dy": this.dy,
-            "lastX": this.lastX,
-            "lastY": this.lastY,
-            "medianDt": this.medianDt,
-            "lastDts": this.lastDts
+            "lx": this.lastX,
+            "ly": this.lastY,
+            "mt": this.medianDt,
+            "ld": this.lastDts
         };
     };
 
     behinstProto.loadFromJSON = function (o)
     {
-        this.fixtureUid = o["fixtureUid"];
-        this.relaxedLength = o["relaxedLength"];
-        this.stiffness = o["stiffness"];
-        this.gravity = o["gravity"];
-        this.enabled = o["enabled"];
-        this.drag = o["drag"];
+        this.fixtureUid = o["fu"];
+        this.relaxedLength = o["rl"];
+        this.stiffness = o["s"];
+        this.gravity = o["g"];
+        this.enabled = o["e"];
+        this.drag = o["d"];
         this.dx = o["dx"];
         this.dy = o["dy"];
-        this.lastX = o["lastX"];
-        this.lastY = o["lastY"];
-        this.medianDt = o["medianDt"];
-        this.lastDts = o["lastDts"];
+        this.lastX = o["lx"];
+        this.lastY = o["ly"];
+        this.medianDt = o["mt"];
+        this.lastDts = o["ld"];
 
         this.diff = {x: 0, y: 0};
         this.vectorToTiee = {x: 0, y: 0};
